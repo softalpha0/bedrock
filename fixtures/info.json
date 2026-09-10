@@ -1,0 +1,23 @@
+{
+  "status": {
+    "timestamp": "2026-09-10T18:00:00.000Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 6,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
+  },
+  "data": {
+    "90002": {
+      "id": 90002,
+      "name": "Tokenized Apple Inc.",
+      "symbol": "AAPLx",
+      "slug": "tokenized-apple",
+      "asset_type": "stock",
+      "description": "Tokenized exposure to Apple Inc. (AAPL) common stock, issued on-chain by regulated providers and backed 1:1 by shares held in custody.",
+      "underlying": { "ticker": "AAPL", "exchange": "NASDAQ", "isin": "US0378331005" },
+      "issuers": ["Backed Finance", "Dinari"],
+      "urls": { "website": ["https://www.apple.com"] }
+    }
+  }
+}

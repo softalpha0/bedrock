@@ -1,0 +1,36 @@
+{
+  "status": {
+    "timestamp": "2026-09-10T18:00:00.000Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 10,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
+  },
+  "data": {
+    "id": 90002,
+    "name": "Tokenized Apple Inc.",
+    "symbol": "AAPLx",
+    "num_market_pairs": 3,
+    "market_pairs": [
+      {
+        "exchange": { "name": "Uniswap v3", "slug": "uniswap-v3" },
+        "market_pair": "bAAPL/USDC",
+        "category": "dex",
+        "quote": { "USD": { "price": 227.38, "volume_24h": 1420000, "depth_positive_two": 62000, "depth_negative_two": 58000 } }
+      },
+      {
+        "exchange": { "name": "Jupiter", "slug": "jupiter" },
+        "market_pair": "AAPLx/USDC",
+        "category": "dex",
+        "quote": { "USD": { "price": 227.45, "volume_24h": 880000, "depth_positive_two": 41000, "depth_negative_two": 39500 } }
+      },
+      {
+        "exchange": { "name": "Dinari", "slug": "dinari" },
+        "market_pair": "dAAPL/USD",
+        "category": "otc",
+        "quote": { "USD": { "price": 227.44, "volume_24h": 350000 } }
+      }
+    ]
+  }
+}

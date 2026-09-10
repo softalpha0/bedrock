@@ -1,0 +1,24 @@
+{
+  "status": {
+    "timestamp": "2026-09-10T18:00:00.000Z",
+    "error_code": "0",
+    "error_message": "",
+    "elapsed": 2,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response. Set CMC_API_KEY for live data."
+  },
+  "data": {
+    "total_size": 8,
+    "has_more": false,
+    "issuers": [
+      { "name": "Backed Assets", "website": "https://assets.backed.fi/", "logo": null, "issuer_id": "6878977dcbbf471de3366e85", "num_tokens": 1176 },
+      { "name": "Dinari", "website": "https://dinari.com", "logo": null, "issuer_id": "6a1f22c084b911e0aa77c210", "num_tokens": 214 },
+      { "name": "Ondo Finance", "website": "https://ondo.finance", "logo": null, "issuer_id": "65b0a1f4e2c9d8471a09f331", "num_tokens": 12 },
+      { "name": "Backpack", "website": "https://backpack.exchange", "logo": "https://s2.coinmarketcap.com/static/img/issuer/M7sS2GzR_400x400.png", "issuer_id": "6a2d54b697c45356b1a634f4", "num_tokens": 6 },
+      { "name": "Franklin Templeton", "website": "https://franklintempleton.com", "logo": null, "issuer_id": "63d9f0a11b2c4e88ff01a774", "num_tokens": 3 },
+      { "name": "BlackRock", "website": "https://blackrock.com", "logo": null, "issuer_id": "64aa7c9d55e1b2003c7788ee", "num_tokens": 1 },
+      { "name": "Tether Gold", "website": "https://gold.tether.to", "logo": null, "issuer_id": "61c88b2a0f9a4d1122ab0099", "num_tokens": 1 },
+      { "name": "Maple Finance", "website": "https://maple.finance", "logo": null, "issuer_id": "6612a0f7cc0b4e5599de1234", "num_tokens": 1 }
+    ]
+  }
+}

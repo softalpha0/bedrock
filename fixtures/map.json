@@ -1,0 +1,15 @@
+{
+  "status": {
+    "timestamp": "2026-09-10T18:00:00.000Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 5,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
+  },
+  "data": [
+    { "id": 90001, "name": "Tokenized US Treasury Bill Fund", "symbol": "USTB", "slug": "tokenized-us-treasury-bill-fund", "is_active": 1, "first_historical_data": "2024-04-01T00:00:00.000Z" },
+    { "id": 90002, "name": "Tokenized Apple Inc.", "symbol": "AAPLx", "slug": "tokenized-apple", "is_active": 1, "first_historical_data": "2024-09-15T00:00:00.000Z" },
+    { "id": 90003, "name": "Tokenized Gold", "symbol": "XAUt", "slug": "tokenized-gold", "is_active": 1, "first_historical_data": "2023-01-10T00:00:00.000Z" }
+  ]
+}

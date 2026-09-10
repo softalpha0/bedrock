@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+
+# Secrets — never commit your CMC API key
+.env
+.env.*
+!.env.example
+
+# Raw API captures produced by `npm run verify`. Review before committing a
+# sanitised copy for your hackathon submission.
+evidence/

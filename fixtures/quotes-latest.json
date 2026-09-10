@@ -1,0 +1,31 @@
+{
+  "status": {
+    "timestamp": "2026-09-10T18:00:00.000Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 8,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
+  },
+  "data": {
+    "90002": {
+      "id": 90002,
+      "name": "Tokenized Apple Inc.",
+      "symbol": "AAPLx",
+      "asset_type": "stock",
+      "average_tokenized_price": 227.41,
+      "tokenized_market_cap": 38500000,
+      "tokenized_volume_24h": 2650000,
+      "last_updated": "2026-09-10T17:59:00.000Z",
+      "quote": {
+        "USD": {
+          "price": 227.41,
+          "volume_24h": 2650000,
+          "percent_change_24h": 0.42,
+          "market_cap": 38500000,
+          "last_updated": "2026-09-10T17:59:00.000Z"
+        }
+      }
+    }
+  }
+}

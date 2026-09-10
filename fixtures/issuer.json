@@ -1,0 +1,23 @@
+{
+  "status": {
+    "timestamp": "2026-09-10T18:00:00.000Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 7,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
+  },
+  "data": {
+    "id": 5001,
+    "name": "Ondo Finance",
+    "slug": "ondo-finance",
+    "website": "https://ondo.finance",
+    "description": "Ondo Finance issues tokenized US Treasuries and cash-equivalent funds on public blockchains.",
+    "token_count": 3,
+    "tokens": [
+      { "id": 90001, "symbol": "OUSG", "name": "Ondo Short-Term US Government Bond Fund", "tokenized_market_cap": 610000000, "chain": "Ethereum" },
+      { "id": 90011, "symbol": "USDY", "name": "Ondo US Dollar Yield", "tokenized_market_cap": 452000000, "chain": "Ethereum" },
+      { "id": 90012, "symbol": "OMMF", "name": "Ondo Money Market Fund", "tokenized_market_cap": 88000000, "chain": "Solana" }
+    ]
+  }
+}

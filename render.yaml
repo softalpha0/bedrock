@@ -1,0 +1,17 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# In the Render dashboard: New > Blueprint, point it at this repo, then set
+# CMC_API_KEY as a secret. Render injects PORT automatically.
+services:
+  - type: web
+    name: bedrock
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: CMC_API_KEY
+        sync: false
+      - key: NODE_VERSION
+        value: "22"

@@ -1,0 +1,246 @@
+{
+  "status": {
+    "timestamp": "2026-09-10T18:00:00.000Z",
+    "error_code": "0",
+    "error_message": "",
+    "elapsed": 14,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response. Set CMC_API_KEY for live data."
+  },
+  "data": {
+    "total_size": 10,
+    "has_more": false,
+    "rwa_assets": [
+      {
+        "name": "Gold",
+        "symbol": "GOLD",
+        "slug": "gold",
+        "rwa_id": 1,
+        "asset_type": "commodity",
+        "rwa_rank": 1,
+        "has_tokens": true,
+        "average_tokenized_price": 4326.6539,
+        "tokenized_market_cap": 4613163019.71,
+        "tokenized_volume_24h": 471483489.65,
+        "last_updated": "2026-09-10T17:33:32.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 4326.6539,
+            "tokenized_market_cap": 4613163019.71,
+            "tokenized_volume_24h": 471483489.65,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "Nvidia Corp",
+        "symbol": "NVDA",
+        "slug": "nvidia-corp",
+        "rwa_id": 2,
+        "asset_type": "stock",
+        "rwa_rank": 2,
+        "has_tokens": true,
+        "average_tokenized_price": 174.62,
+        "tokenized_market_cap": 892400000.0,
+        "tokenized_volume_24h": 38200000.0,
+        "last_updated": "2026-09-10T17:33:10.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 174.62,
+            "tokenized_market_cap": 892400000.0,
+            "tokenized_volume_24h": 38200000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "US Treasury Bill",
+        "symbol": "TBILL",
+        "slug": "us-treasury-bill",
+        "rwa_id": 3,
+        "asset_type": "government-security",
+        "rwa_rank": 3,
+        "has_tokens": true,
+        "average_tokenized_price": 100.04,
+        "tokenized_market_cap": 1284000000.0,
+        "tokenized_volume_24h": 41200000.0,
+        "last_updated": "2026-09-10T17:32:58.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 100.04,
+            "tokenized_market_cap": 1284000000.0,
+            "tokenized_volume_24h": 41200000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "Apple Inc",
+        "symbol": "AAPL",
+        "slug": "apple-inc",
+        "rwa_id": 4,
+        "asset_type": "stock",
+        "rwa_rank": 4,
+        "has_tokens": true,
+        "average_tokenized_price": 227.41,
+        "tokenized_market_cap": 61500000.0,
+        "tokenized_volume_24h": 4650000.0,
+        "last_updated": "2026-09-10T17:33:01.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 227.41,
+            "tokenized_market_cap": 61500000.0,
+            "tokenized_volume_24h": 4650000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "Silver",
+        "symbol": "SILVER",
+        "slug": "silver",
+        "rwa_id": 5,
+        "asset_type": "commodity",
+        "rwa_rank": 5,
+        "has_tokens": true,
+        "average_tokenized_price": 41.83,
+        "tokenized_market_cap": 118000000.0,
+        "tokenized_volume_24h": 6900000.0,
+        "last_updated": "2026-09-10T17:33:20.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 41.83,
+            "tokenized_market_cap": 118000000.0,
+            "tokenized_volume_24h": 6900000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "Tesla Inc",
+        "symbol": "TSLA",
+        "slug": "tesla-inc",
+        "rwa_id": 6,
+        "asset_type": "stock",
+        "rwa_rank": 6,
+        "has_tokens": true,
+        "average_tokenized_price": 241.9,
+        "tokenized_market_cap": 33700000.0,
+        "tokenized_volume_24h": 2980000.0,
+        "last_updated": "2026-09-10T17:33:05.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 241.9,
+            "tokenized_market_cap": 33700000.0,
+            "tokenized_volume_24h": 2980000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "S&P 500 Index Fund",
+        "symbol": "SPY",
+        "slug": "sp-500-index-fund",
+        "rwa_id": 7,
+        "asset_type": "etf",
+        "rwa_rank": 7,
+        "has_tokens": true,
+        "average_tokenized_price": 561.22,
+        "tokenized_market_cap": 96100000.0,
+        "tokenized_volume_24h": 5100000.0,
+        "last_updated": "2026-09-10T17:33:12.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 561.22,
+            "tokenized_market_cap": 96100000.0,
+            "tokenized_volume_24h": 5100000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "Money Market Fund",
+        "symbol": "MMF",
+        "slug": "money-market-fund",
+        "rwa_id": 8,
+        "asset_type": "government-security",
+        "rwa_rank": 8,
+        "has_tokens": true,
+        "average_tokenized_price": 1.0,
+        "tokenized_market_cap": 758000000.0,
+        "tokenized_volume_24h": 9200000.0,
+        "last_updated": "2026-09-10T17:33:40.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 1.0,
+            "tokenized_market_cap": 758000000.0,
+            "tokenized_volume_24h": 9200000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "Microsoft Corp",
+        "symbol": "MSFT",
+        "slug": "microsoft-corp",
+        "rwa_id": 9,
+        "asset_type": "stock",
+        "rwa_rank": 9,
+        "has_tokens": true,
+        "average_tokenized_price": 418.03,
+        "tokenized_market_cap": 24800000.0,
+        "tokenized_volume_24h": 1750000.0,
+        "last_updated": "2026-09-10T17:33:08.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 418.03,
+            "tokenized_market_cap": 24800000.0,
+            "tokenized_volume_24h": 1750000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      },
+      {
+        "name": "Private Credit Fund",
+        "symbol": "PCF",
+        "slug": "private-credit-fund",
+        "rwa_id": 10,
+        "asset_type": "fund",
+        "rwa_rank": 10,
+        "has_tokens": false,
+        "average_tokenized_price": 1.01,
+        "tokenized_market_cap": 612000000.0,
+        "tokenized_volume_24h": 7300000.0,
+        "last_updated": "2026-09-10T17:33:50.000Z",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 1.01,
+            "tokenized_market_cap": 612000000.0,
+            "tokenized_volume_24h": 7300000.0,
+            "last_updated": "2026-09-10T17:34:05.000Z"
+          }
+        ]
+      }
+    ]
+  }
+}
