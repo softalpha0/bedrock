@@ -5,6 +5,9 @@ money-market funds, commodities and the issuers behind them — built entirely o
 **CoinMarketCap Real World Assets (RWA) API**.
 
 > Submission for the **Build with CMC: API Hackathon** · Track: **Real World Assets**
+>
+> **Live demo:** https://bedrock-rygi.onrender.com &nbsp;(`/api/health` returns `{"ok":true,"mode":"live"}`)
+> — free Render instance, sleeps after 15 min idle; first request may take ~50s to wake.
 
 The browser never sees the API key. A small Node/Express service holds the key,
 proxies an allow-list of RWA endpoints, caches responses for ~60s, and serves a
