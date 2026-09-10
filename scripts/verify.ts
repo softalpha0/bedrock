@@ -28,6 +28,16 @@ const CALLS = [
     path: "/v5/real-world-assets/issuers/list",
     query: { start: "1", limit: "10" },
   },
+  {
+    name: "quotes-latest",
+    path: "/v5/real-world-assets/quotes/latest",
+    query: { rwa_id: "1", convert: "USD" },
+  },
+  {
+    name: "info",
+    path: "/v5/real-world-assets/info",
+    query: { rwa_id: "1" },
+  },
 ];
 
 const out: string[] = [];

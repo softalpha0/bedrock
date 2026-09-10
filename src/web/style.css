@@ -242,6 +242,154 @@ footer {
   font-size: 11.5px;
 }
 
+/* asset detail overlay */
+.ov {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.ov-card {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 24px 28px;
+}
+
+.ov-x {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ov-card h2 {
+  margin: 0 32px 16px 0;
+  font-size: 19px;
+}
+.ov-card h3 {
+  margin: 22px 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ov-quote {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ov-quote div {
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.ov-quote span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.ov-quote strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.ov-facts {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.ov-facts th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 6px 12px 6px 0;
+  white-space: nowrap;
+  width: 1%;
+}
+.ov-facts td {
+  padding: 6px 0;
+}
+
+.ov-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 13px;
+}
+.ov-links a {
+  color: var(--accent-2);
+  text-decoration: none;
+}
+.ov-links a:hover {
+  text-decoration: underline;
+}
+
+.ov-tokens {
+  margin-top: 4px;
+}
+
+.ov-about {
+  font-size: 13px;
+  line-height: 1.6;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.ov-about h4 {
+  margin: 14px 0 4px;
+  font-size: 13px;
+}
+.ov-about p {
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+
+.ov-raw {
+  margin-top: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.ov-card pre {
+  margin: 12px 0 0;
+  max-height: 320px;
+  overflow: auto;
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+@media (max-width: 560px) {
+  .ov-quote {
+    grid-template-columns: 1fr;
+  }
+}
+
 code {
   font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   background: var(--surface-2);

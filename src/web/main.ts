@@ -125,6 +125,176 @@ async function loadIssuers(): Promise<void> {
   render();
 }
 
+// --- asset detail ("research") view ------------------------------------------
+// CoinMarketCap has no public web page for RWA assets yet (/rwa/* 404s), so the
+// detail view is built in-app from /info (company facts + a Q&A description) and
+// /quotes/latest (live quote + the individual tokens backing the asset).
+
+const detail = {
+  open: false,
+  loading: false,
+  error: "",
+  asset: null as Asset | null,
+  info: null as Json,
+  quote: null as Json,
+  showRaw: false,
+};
+
+async function openDetail(asset: Asset): Promise<void> {
+  detail.open = true;
+  detail.loading = true;
+  detail.error = "";
+  detail.asset = asset;
+  detail.info = null;
+  detail.quote = null;
+  detail.showRaw = false;
+  render();
+
+  const id = encodeURIComponent(String(asset.id));
+  const [infoR, quoteR] = await Promise.allSettled([
+    api(`/api/info?rwa_id=${id}`),
+    api(`/api/quotes?rwa_id=${id}&convert=USD`),
+  ]);
+  const first = (r: PromiseSettledResult<Json>) =>
+    r.status === "fulfilled" ? (r.value?.data?.rwa_assets?.[0] ?? null) : null;
+  detail.info = first(infoR);
+  detail.quote = first(quoteR);
+  if (!detail.info && !detail.quote) {
+    detail.error =
+      infoR.status === "rejected"
+        ? (infoR.reason as Error).message
+        : "No detail available for this asset.";
+  }
+  detail.loading = false;
+  render();
+}
+
+function closeDetail(): void {
+  detail.open = false;
+  render();
+}
+
+// Tiny Markdown renderer for the `about.description` field (### headings,
+// paragraphs, **bold**). Escapes first, so it is safe on untrusted text.
+function mdLite(src: string): string {
+  const e = (s: string) =>
+    s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] as string);
+  const inline = (s: string) => e(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  const out: string[] = [];
+  let para: string[] = [];
+  const flush = () => {
+    if (para.length) out.push(`<p>${inline(para.join(" "))}</p>`);
+    para = [];
+  };
+  for (const raw of src.split("\n")) {
+    const line = raw.trim();
+    if (!line) {
+      flush();
+      continue;
+    }
+    const h = /^#{1,6}\s+(.*)$/.exec(line);
+    if (h) {
+      flush();
+      out.push(`<h4>${inline(h[1] as string)}</h4>`);
+    } else {
+      para.push(line);
+    }
+  }
+  flush();
+  return out.join("");
+}
+
+function detailOverlay(): string {
+  if (!detail.open || !detail.asset) return "";
+  const a = detail.asset;
+  const info: Json = detail.info ?? {};
+  const q: Json = detail.quote ?? {};
+  const tokens: Json[] = Array.isArray(q.tokens)
+    ? q.tokens
+    : Array.isArray(info.tokens)
+      ? info.tokens
+      : [];
+  const cik = String(info.cik ?? "").replace(/\D/g, "");
+  const edgar = cik
+    ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${cik}&type=&dateb=&owner=include&count=40`
+    : "";
+  const facts: Array<[string, string]> = (
+    [
+      ["Type", a.type],
+      ["Rank", a.rank ? `#${a.rank}` : ""],
+      ["Industry", info.industry ?? ""],
+      ["Primary exchange", info.primary_exchange ?? ""],
+      ["Founded", info.founded ? String(info.founded).slice(0, 10) : ""],
+      ["Employees", info.employees ? fmtNum(info.employees) : ""],
+      ["SEC CIK", cik],
+    ] as Array<[string, string]>
+  ).filter(([, v]) => v);
+  const desc = String(info?.about?.description ?? info?.description ?? "");
+
+  return `
+  <div class="ov" data-ovbackdrop>
+    <div class="ov-card" role="dialog" aria-modal="true" aria-label="${esc(a.name)}">
+      <button class="ov-x" data-ovclose aria-label="Close">×</button>
+      <h2>${esc(a.name)} <span class="sym">${esc(a.symbol)}</span></h2>
+      ${detail.loading ? `<p class="muted">Loading…</p>` : ""}
+      ${detail.error ? `<div class="error">${esc(detail.error)}</div>` : ""}
+
+      <div class="ov-quote">
+        <div><span>Tokenised price</span><strong>${fmtUsd(q.average_tokenized_price ?? a.price)}</strong></div>
+        <div><span>Tokenised market cap</span><strong>${fmtUsd(q.tokenized_market_cap ?? a.mcap)}</strong></div>
+        <div><span>24h tokenised volume</span><strong>${fmtUsd(q.tokenized_volume_24h ?? a.vol)}</strong></div>
+      </div>
+
+      ${
+        facts.length
+          ? `<table class="ov-facts">${facts
+              .map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`)
+              .join("")}</table>`
+          : ""
+      }
+
+      ${
+        info.website || edgar
+          ? `<div class="ov-links">
+               ${info.website ? `<a href="${esc(info.website)}" target="_blank" rel="noopener noreferrer">Official site ↗</a>` : ""}
+               ${edgar ? `<a href="${edgar}" target="_blank" rel="noopener noreferrer">SEC EDGAR filings ↗</a>` : ""}
+             </div>`
+          : ""
+      }
+
+      ${
+        tokens.length
+          ? `<h3>Backing tokens · ${tokens.length}</h3>
+             <table class="grid ov-tokens">
+               <thead><tr><th>Token</th><th>Issuer</th><th class="r">Price</th><th class="r">Market cap</th></tr></thead>
+               <tbody>${tokens
+                 .map(
+                   (tk) => `<tr>
+                     <td><strong>${esc(tk.symbol ?? "")}</strong> <span class="sym">${esc(tk.name ?? "")}</span></td>
+                     <td>${esc(tk.issuer_name ?? tk.issuer_id ?? "—")}</td>
+                     <td class="r">${fmtUsd(tk.price)}</td>
+                     <td class="r">${fmtUsd(tk.market_cap)}</td>
+                   </tr>`,
+                 )
+                 .join("")}</tbody>
+             </table>`
+          : ""
+      }
+
+      ${desc ? `<h3>About</h3><div class="ov-about">${mdLite(desc)}</div>` : ""}
+
+      <button class="ov-raw" data-ovraw>${detail.showRaw ? "Hide" : "Show"} raw API records</button>
+      ${
+        detail.showRaw
+          ? `<pre>${esc(
+              JSON.stringify({ "assets/list": a.raw, info: detail.info, "quotes/latest": detail.quote }, null, 2),
+            )}</pre>`
+          : ""
+      }
+    </div>
+  </div>`;
+}
+
 function visibleAssets(): Asset[] {
   let rows = state.assets;
   if (state.type !== "all") rows = rows.filter((r) => r.type === state.type);
@@ -175,13 +345,10 @@ function render(): void {
     ${state.error ? `<div class="error">${esc(state.error)}</div>` : ""}
     ${body}
     <footer>
-      Source: CoinMarketCap Pro API ·
-      <code>/v5/real-world-assets/assets/list</code>,
-      <code>/issuers/list</code>,
-      <code>/issuers</code>,
-      <code>/quotes/latest</code>,
-      <code>/market-pairs/list</code>
+      Source: CoinMarketCap Pro API · <code>/v5/real-world-assets/</code>
+      <code>assets/list</code>, <code>issuers/list</code>, <code>quotes/latest</code>, <code>info</code>
     </footer>
+    ${detailOverlay()}
   `;
   bind();
 }
@@ -234,7 +401,7 @@ function assetsView(t: ReturnType<typeof totals>): string {
         all.length > rows.length
           ? `${fmtNum(rows.length)} of ${fmtNum(all.length)} — refine to see more`
           : `${fmtNum(all.length)} shown`
-      }</span>
+      } · click a row for detail</span>
     </section>
 
     <table class="grid">
@@ -251,16 +418,13 @@ function assetsView(t: ReturnType<typeof totals>): string {
         ${rows
           .map(
             (r, i) => `
-        <tr class="row" data-i="${i}">
+        <tr class="row" data-i="${i}" title="Open ${esc(r.name)} detail">
           <td><strong>${esc(r.name)}</strong> <span class="sym">${esc(r.symbol)}</span></td>
           <td><span class="pill">${esc(r.type)}</span></td>
           <td class="r">${fmtUsd(r.price)}</td>
           <td class="r">${fmtUsd(r.mcap)}</td>
           <td class="r">${fmtUsd(r.vol)}</td>
           <td class="r">${r.hasTokens ? "✓" : "—"}</td>
-        </tr>
-        <tr class="detail" data-d="${i}" hidden>
-          <td colspan="6"><pre>${esc(JSON.stringify(r.raw, null, 2))}</pre></td>
         </tr>`,
           )
           .join("")}
@@ -340,10 +504,30 @@ function bind(): void {
 
   app.querySelectorAll<HTMLTableRowElement>("tr.row").forEach((tr) => {
     tr.addEventListener("click", () => {
-      const detail = app.querySelector<HTMLTableRowElement>(`tr.detail[data-d="${tr.dataset.i}"]`);
-      if (detail) detail.hidden = !detail.hidden;
+      const i = Number(tr.dataset.i);
+      if (state.tab === "assets") {
+        const row = visibleAssets().slice(0, MAX_TABLE_ROWS)[i];
+        if (row) void openDetail(row);
+      } else {
+        const d = app.querySelector<HTMLTableRowElement>(`tr.detail[data-d="${i}"]`);
+        if (d) d.hidden = !d.hidden;
+      }
     });
   });
+
+  const backdrop = app.querySelector<HTMLElement>("[data-ovbackdrop]");
+  backdrop?.addEventListener("click", (e) => {
+    if (e.target === backdrop) closeDetail();
+  });
+  app.querySelector<HTMLButtonElement>("[data-ovclose]")?.addEventListener("click", closeDetail);
+  app.querySelector<HTMLButtonElement>("[data-ovraw]")?.addEventListener("click", () => {
+    detail.showRaw = !detail.showRaw;
+    render();
+  });
 }
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && detail.open) closeDetail();
+});
 
 void loadAssets();

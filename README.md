@@ -19,13 +19,16 @@ payload and the issuer graph.
 
 ## What it does
 
-- **Assets view** — every tracked RWA with tokenised price, tokenised market cap,
-  24h tokenised volume and token count; search, filter by asset type
-  (`stock`, `government_security`, `etf`, `commodity`, `real_estate`, `currency`),
-  and sort. Aggregate cards for total tokenised market cap and volume, plus a
-  top-12 bar chart.
-- **Issuers view** — every token issuer and the tokens linked to each.
-- **Raw drawer** — click any row to expand the exact CMC JSON for that record.
+- **Assets view** — the top 1,000 RWAs by tokenised market cap (the API tracks
+  ~7,900) with tokenised price, market cap and 24h volume; search, filter by
+  asset type (`stock`, `commodity`, `government-security`, `etf`, …), sort.
+  Aggregate cards plus a top-12 bar chart.
+- **Asset detail** — click any row for a research view built from `info` +
+  `quotes/latest`: live quote, company facts (industry, primary exchange,
+  founded, employees), a link to the company site and to its **SEC EDGAR**
+  filings (via the `cik` field), the individual **tokens backing the asset**
+  with their issuers, a Q&A description, and a raw-JSON toggle.
+- **Issuers view** — every token issuer and how many instruments it has tokenised.
 - **Mock mode** — with no key set, the server serves bundled sample fixtures so
   the UI runs immediately. A banner makes the data source obvious.
 
@@ -38,13 +41,13 @@ All under base URL `https://pro-api.coinmarketcap.com`, authenticated with the
 
 | App route | CMC endpoint | Used for |
 |---|---|---|
-| `/api/assets` | `GET /v5/real-world-assets/assets/list` | main asset table, aggregates, chart |
+| `/api/assets` | `GET /v5/real-world-assets/assets/list` | main asset table, aggregates, chart (paginated across all ~7,900) |
 | `/api/issuers` | `GET /v5/real-world-assets/issuers/list` | issuers table |
-| `/api/issuer` | `GET /v5/real-world-assets/issuers` | single issuer + linked tokens |
-| `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | latest quote for specific assets |
-| `/api/info` | `GET /v5/real-world-assets/info` | static metadata (ISIN, underlying, issuers) |
-| `/api/map` | `GET /v5/real-world-assets/map` | id / slug / symbol map |
-| `/api/market-pairs` | `GET /v5/real-world-assets/market-pairs/list` | active markets for an RWA token |
+| `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail: live quote + backing tokens |
+| `/api/info` | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
+| `/api/issuer` | `GET /v5/real-world-assets/issuers` | proxied; single issuer + linked tokens |
+| `/api/map` | `GET /v5/real-world-assets/map` | proxied; id / slug / symbol map |
+| `/api/market-pairs` | `GET /v5/real-world-assets/market-pairs/list` | proxied — **returns 1006 on Startup tier** (see notes) |
 
 The request/response code lives in [`src/server/cmc.ts`](src/server/cmc.ts) and
 [`src/server/routes.ts`](src/server/routes.ts).
@@ -110,11 +113,13 @@ excludes it.
 
 ## Notes on the API
 
-**What it made possible:** one endpoint (`assets/list`) returns tokenised price,
-market cap and 24h volume already aggregated across every issuer of a given
-real-world asset, so a useful cross-issuer view of the whole tokenised-asset
-market is a single call. The `issuers` endpoints make the asset↔issuer graph
-explicit, which is the interesting structure here.
+**What it made possible:** `assets/list` returns tokenised price, market cap and
+24h volume already aggregated across every issuer of a given real-world asset, so
+a cross-issuer view of the whole market is one paginated call. `quotes/latest`
+then breaks a single asset back down into the individual tokens behind it (with
+issuer, price and market cap per token), and `info` carries genuinely useful
+reference data — industry, primary exchange, employee count, SEC `cik`, and a
+readable Q&A explainer — so a per-asset research page needs no other source.
 
 **Where it got in the way** (running list, from building this):
 
@@ -135,6 +140,16 @@ explicit, which is the interesting structure here.
 - **Response envelope isn't in the public docs.** The `data.rwa_assets` /
   `data.issuers` wrapper plus `total_size` / `has_more` pagination fields had to
   be discovered by calling the endpoint — see `evidence/`.
+- **`market-pairs/list` fails on Startup tier** with `error_code` `1006`,
+  "Your API Key subscription plan doesn't support this endpoint" — even though
+  the plan lists 54 endpoints enabled. Nothing in the RWA reference flags which
+  endpoints need a higher tier, so this is only discoverable at runtime. The
+  route is still proxied; the UI just doesn't depend on it.
+- **RWA assets have no page on coinmarketcap.com yet** (`/rwa/*` and
+  `/currencies/<rwa-slug>/` both 404), so there's no canonical URL to deep-link
+  a user to for research. The detail view is built from `info` instead — the
+  `about.description` (a decent Q&A explainer) and `cik` (→ SEC EDGAR) fill that
+  gap for equities, but there's no equivalent for commodities or funds.
 
 ---
 
