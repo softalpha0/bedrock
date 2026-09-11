@@ -29,6 +29,10 @@ Treasuries, money-market funds, commodities) and the **25 issuers** behind them.
   primary exchange, founded, employees), links to the company site and its
   **SEC EDGAR** filings via the `cik` field, the individual **tokens backing the
   asset** with issuers, a Q&A description, and a raw-JSON toggle
+- **New & Upcoming**: `rwa_id` is assigned sequentially as CMC onboards assets,
+  so the tail of `map` is its newest additions. Split into **Newly launched**
+  (already has a token) and **Upcoming** (tracked, no token yet) — the RWA API
+  exposes no dedicated "upcoming" endpoint, so this is the honest proxy for it
 - Issuers view: every issuer and how many instruments it has tokenised
 
 The API key never reaches the browser. A small Node/Express service holds it,
@@ -47,7 +51,7 @@ Base `https://pro-api.coinmarketcap.com`, header `X-CMC_PRO_API_KEY`.
 | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
 | `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CoinMarketCap page slug for each backing token |
 | `GET /v5/real-world-assets/issuers` | proxied (single issuer + linked tokens) |
-| `GET /v5/real-world-assets/map` | proxied (id / slug / symbol map) |
+| `GET /v5/real-world-assets/map` | New & Upcoming: tail-page scan by `rwa_id` for the newest additions |
 | `GET /v5/real-world-assets/market-pairs/list` | proxied — 1006 "plan doesn't support" on Startup tier |
 
 Client + proxy code: `src/server/cmc.ts`, `src/server/routes.ts`.
@@ -103,6 +107,10 @@ interesting shape of this dataset.
   tokens do, but the RWA endpoints only expose their numeric `crypto_id` — a
   second `/v2/cryptocurrency/info` call is needed to get the `slug` for the
   public URL. The detail view stitches that together plus `cik` → SEC EDGAR.
+- No `sort` on `assets/list` (any value → `4001 Invalid parameter`) and no
+  "recently added" / "upcoming" endpoint — New & Upcoming works only because
+  `rwa_id` happens to be assigned in onboarding order, discovered by scanning
+  the tail of `map`.
 
 ---
 

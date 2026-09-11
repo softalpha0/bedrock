@@ -38,6 +38,11 @@ const CALLS = [
     path: "/v5/real-world-assets/info",
     query: { rwa_id: "1" },
   },
+  {
+    name: "map",
+    path: "/v5/real-world-assets/map",
+    query: { start: "1", limit: "10" },
+  },
 ];
 
 const out: string[] = [];

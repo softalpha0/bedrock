@@ -77,7 +77,7 @@ const MAX_LOADED = 1000;
 const MAX_TABLE_ROWS = 250;
 
 const state = {
-  tab: "assets" as "assets" | "issuers",
+  tab: "assets" as "assets" | "issuers" | "discover",
   loading: true,
   error: "",
   assets: [] as Asset[],
@@ -86,6 +86,17 @@ const state = {
   q: "",
   type: "all",
   sort: "mcap" as "mcap" | "vol" | "price" | "name",
+  discover: {
+    loaded: false,
+    loading: false,
+    error: "",
+    // CoinMarketCap assigns rwa_id sequentially as it onboards assets, so the
+    // highest ids are its most recent RWA-universe additions. Split by
+    // has_tokens: true = a token already backs it (newly launched); false =
+    // tracked as a candidate but not yet tokenised (upcoming).
+    launched: [] as Asset[],
+    upcoming: [] as Asset[],
+  },
 };
 
 async function loadAssets(): Promise<void> {
@@ -122,6 +133,33 @@ async function loadIssuers(): Promise<void> {
     state.error = (e as Error).message;
   }
   state.loading = false;
+  render();
+}
+
+const DISCOVER_TAIL = 250;
+const DISCOVER_SHOW = 15;
+
+async function loadNewAndUpcoming(): Promise<void> {
+  state.discover.loading = true;
+  state.discover.error = "";
+  render();
+  try {
+    // /v5/real-world-assets/map lists assets in ascending rwa_id order, so its
+    // last page is CoinMarketCap's most recently onboarded RWAs.
+    const first = await api("/api/map?start=1&limit=1");
+    const total = num(first?.data?.total_size) || DISCOVER_TAIL;
+    const start = Math.max(1, total - DISCOVER_TAIL + 1);
+    const body = await api(`/api/map?start=${start}&limit=${DISCOVER_TAIL}`);
+    const tail = assetsFrom(body).map(toAsset).reverse(); // newest first
+
+    state.discover.launched = tail.filter((a) => a.hasTokens).slice(0, DISCOVER_SHOW);
+    state.discover.upcoming = tail.filter((a) => !a.hasTokens).slice(0, DISCOVER_SHOW);
+    state.discover.loaded = true;
+    state.discover.error = "";
+  } catch (e) {
+    state.discover.error = (e as Error).message;
+  }
+  state.discover.loading = false;
   render();
 }
 
@@ -365,11 +403,15 @@ function totals() {
 
 function render(): void {
   const t = totals();
-  const body = state.loading
+  const isLoading = state.tab === "discover" ? state.discover.loading : state.loading;
+  const activeError = state.tab === "discover" ? state.discover.error : state.error;
+  const body = isLoading
     ? `<div class="loading">Loading…</div>`
     : state.tab === "assets"
       ? assetsView(t)
-      : issuersView();
+      : state.tab === "issuers"
+        ? issuersView()
+        : discoverView();
 
   app.innerHTML = `
     <header class="topbar">
@@ -380,16 +422,18 @@ function render(): void {
       <nav class="tabs">
         <button data-tab="assets" class="${state.tab === "assets" ? "on" : ""}">Assets</button>
         <button data-tab="issuers" class="${state.tab === "issuers" ? "on" : ""}">Issuers</button>
+        <button data-tab="discover" class="${state.tab === "discover" ? "on" : ""}">New &amp; Upcoming</button>
       </nav>
     </header>
     <div class="mock-banner">
       Serving bundled sample data — add <code>CMC_API_KEY</code> to <code>.env</code> and restart for live data.
     </div>
-    ${state.error ? `<div class="error">${esc(state.error)}</div>` : ""}
+    ${activeError ? `<div class="error">${esc(activeError)}</div>` : ""}
     ${body}
     <footer>
       Source: CoinMarketCap Pro API · <code>/v5/real-world-assets/</code>
-      <code>assets/list</code>, <code>issuers/list</code>, <code>quotes/latest</code>, <code>info</code>
+      <code>assets/list</code>, <code>issuers/list</code>, <code>quotes/latest</code>, <code>info</code>,
+      <code>map</code> · <code>/v2/cryptocurrency/info</code>
     </footer>
     ${detailOverlay()}
   `;
@@ -516,11 +560,55 @@ function issuersView(): string {
   `;
 }
 
+function discoverTable(bucket: "l" | "u", rows: Asset[], emptyMsg: string): string {
+  if (!rows.length) return `<p class="muted">${esc(emptyMsg)}</p>`;
+  return `
+    <table class="grid">
+      <thead><tr><th>Asset</th><th>Type</th><th class="r">Rank</th></tr></thead>
+      <tbody>
+        ${rows
+          .map(
+            (r, i) => `
+        <tr class="row" data-i="${i}" data-bucket="${bucket}" title="Open ${esc(r.name)} detail">
+          <td><strong>${esc(r.name)}</strong> <span class="sym">${esc(r.symbol)}</span></td>
+          <td><span class="pill">${esc(r.type)}</span></td>
+          <td class="r">${r.rank ? `#${fmtNum(r.rank)}` : "—"}</td>
+        </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>`;
+}
+
+function discoverView(): string {
+  const d = state.discover;
+  return `
+    <section class="panel">
+      <h2>Newly launched</h2>
+      <p class="muted">
+        CoinMarketCap's most recent RWA-universe additions that already have a
+        live token backing them — by <code>rwa_id</code>, its onboarding order.
+      </p>
+      ${discoverTable("l", d.launched, "Nothing newly tokenised in the latest batch.")}
+    </section>
+    <section class="panel">
+      <h2>Upcoming</h2>
+      <p class="muted">
+        Assets CoinMarketCap now tracks as RWA candidates — recognised, but with
+        <strong>no token yet</strong> (<code>has_tokens: false</code>). The API has
+        no separate "upcoming" endpoint; this is the closest honest signal it exposes.
+      </p>
+      ${discoverTable("u", d.upcoming, "Nothing pending in the latest batch.")}
+    </section>
+  `;
+}
+
 function bind(): void {
   app.querySelectorAll<HTMLButtonElement>(".tabs button").forEach((b) => {
     b.addEventListener("click", () => {
       state.tab = b.dataset.tab as typeof state.tab;
       if (state.tab === "issuers" && state.issuers.length === 0) void loadIssuers();
+      else if (state.tab === "discover" && !state.discover.loaded) void loadNewAndUpcoming();
       else render();
     });
   });
@@ -550,6 +638,10 @@ function bind(): void {
       const i = Number(tr.dataset.i);
       if (state.tab === "assets") {
         const row = visibleAssets().slice(0, MAX_TABLE_ROWS)[i];
+        if (row) void openDetail(row);
+      } else if (state.tab === "discover") {
+        const list = tr.dataset.bucket === "l" ? state.discover.launched : state.discover.upcoming;
+        const row = list[i];
         if (row) void openDetail(row);
       } else {
         const d = app.querySelector<HTMLTableRowElement>(`tr.detail[data-d="${i}"]`);

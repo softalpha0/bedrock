@@ -30,6 +30,12 @@ payload and the issuer graph.
   **token backing the asset** — each linked to its own CoinMarketCap profile
   (resolved from `crypto_id` via `/v2/cryptocurrency/info`) — a Q&A description,
   and a raw-JSON toggle.
+- **New & Upcoming** — CoinMarketCap assigns `rwa_id` sequentially as it onboards
+  assets, so the tail of `map` (highest ids) is its most recent additions. Split
+  into **Newly launched** (`has_tokens: true` — already backed by a live token)
+  and **Upcoming** (`has_tokens: false` — recognised as an RWA candidate, not yet
+  tokenised). The RWA API has no dedicated "upcoming" endpoint; this is the most
+  honest signal it exposes, and it's labelled as such in the UI.
 - **Issuers view** — every token issuer and how many instruments it has tokenised.
 - **Mock mode** — with no key set, the server serves bundled sample fixtures so
   the UI runs immediately. A banner makes the data source obvious.
@@ -49,7 +55,7 @@ All under base URL `https://pro-api.coinmarketcap.com`, authenticated with the
 | `/api/info` | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
 | `/api/crypto-info` | `GET /v2/cryptocurrency/info` | asset detail: resolve each backing token's `crypto_id` → CoinMarketCap page slug |
 | `/api/issuer` | `GET /v5/real-world-assets/issuers` | proxied; single issuer + linked tokens |
-| `/api/map` | `GET /v5/real-world-assets/map` | proxied; id / slug / symbol map |
+| `/api/map` | `GET /v5/real-world-assets/map` | New & Upcoming: tail-page scan by `rwa_id` for recent additions |
 | `/api/market-pairs` | `GET /v5/real-world-assets/market-pairs/list` | proxied — **returns 1006 on Startup tier** (see notes) |
 
 The request/response code lives in [`src/server/cmc.ts`](src/server/cmc.ts) and
@@ -157,6 +163,12 @@ readable Q&A explainer — so a per-asset research page needs no other source.
 - The `info` endpoint's `about.description` (a solid Q&A explainer) and `cik`
   (→ SEC EDGAR) are great for equities, but there's no equivalent reference
   content for commodities or funds.
+- **No `sort` parameter on `assets/list`** — any value (`id`, `date_added`,
+  `market_cap`, …) returns `4001 Invalid parameter`; ordering is fixed to
+  `rwa_rank`. There's also no "recently added" or "upcoming" endpoint. Building
+  New & Upcoming meant noticing that `rwa_id` is assigned in onboarding order and
+  scanning the tail of `map` instead — it works, but a `sort=date_added` option
+  or a dedicated endpoint would make "what's new" a one-call answer.
 
 ---
 
