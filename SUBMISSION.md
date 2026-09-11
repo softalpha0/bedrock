@@ -45,6 +45,7 @@ Base `https://pro-api.coinmarketcap.com`, header `X-CMC_PRO_API_KEY`.
 | `GET /v5/real-world-assets/issuers/list` | issuers view |
 | `GET /v5/real-world-assets/quotes/latest` | asset detail: live quote + backing tokens |
 | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
+| `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CoinMarketCap page slug for each backing token |
 | `GET /v5/real-world-assets/issuers` | proxied (single issuer + linked tokens) |
 | `GET /v5/real-world-assets/map` | proxied (id / slug / symbol map) |
 | `GET /v5/real-world-assets/market-pairs/list` | proxied — 1006 "plan doesn't support" on Startup tier |
@@ -98,9 +99,10 @@ interesting shape of this dataset.
 - `market-pairs/list` returns `1006` "plan doesn't support this endpoint" on the
   Startup tier, with nothing in the docs saying which RWA endpoints need a higher
   tier — only discoverable at runtime.
-- RWA assets have **no page on coinmarketcap.com** (`/rwa/*` 404s), so there's no
-  canonical URL to send a user to for research — the detail view is built from
-  `info` (`about.description` + `cik` → SEC EDGAR) instead.
+- RWA assets have **no page on coinmarketcap.com** (`/rwa/*` 404s). The backing
+  tokens do, but the RWA endpoints only expose their numeric `crypto_id` — a
+  second `/v2/cryptocurrency/info` call is needed to get the `slug` for the
+  public URL. The detail view stitches that together plus `cik` → SEC EDGAR.
 
 ---
 

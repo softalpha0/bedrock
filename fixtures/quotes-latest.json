@@ -1,31 +1,110 @@
 {
-  "status": {
-    "timestamp": "2026-09-10T18:00:00.000Z",
-    "error_code": 0,
-    "error_message": null,
-    "elapsed": 8,
-    "credit_count": 1,
-    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
-  },
   "data": {
-    "90002": {
-      "id": 90002,
-      "name": "Tokenized Apple Inc.",
-      "symbol": "AAPLx",
-      "asset_type": "stock",
-      "average_tokenized_price": 227.41,
-      "tokenized_market_cap": 38500000,
-      "tokenized_volume_24h": 2650000,
-      "last_updated": "2026-09-10T17:59:00.000Z",
-      "quote": {
-        "USD": {
-          "price": 227.41,
-          "volume_24h": 2650000,
-          "percent_change_24h": 0.42,
-          "market_cap": 38500000,
-          "last_updated": "2026-09-10T17:59:00.000Z"
-        }
+    "rwa_assets": [
+      {
+        "name": "Gold",
+        "symbol": "GOLD",
+        "slug": "gold",
+        "quotes": [
+          {
+            "symbol": "USD",
+            "crypto_id": 2781,
+            "average_tokenized_price": 4320.583449536028,
+            "tokenized_market_cap": 4606582338.409129,
+            "tokenized_volume_24h": 486994693.18691957,
+            "last_updated": "2026-09-10T23:41:04.000Z"
+          }
+        ],
+        "rwa_id": 1,
+        "asset_type": "commodity",
+        "rwa_rank": 1,
+        "has_tokens": true,
+        "average_tokenized_price": 4320.583449536028,
+        "tokenized_market_cap": 4606582338.409129,
+        "tokenized_volume_24h": 486994693.18691957,
+        "last_updated": "2026-09-10T23:39:31.754Z",
+        "tokens": [
+          {
+            "symbol": "PAXG",
+            "name": "PAX Gold",
+            "price": 4323.310885485125,
+            "crypto_id": 4705,
+            "issuer_id": "68904c24abae9b5b9fb35815",
+            "issuer_name": "Paxos",
+            "market_cap": 1869846313.75,
+            "volume_24h": 228009624.07357714
+          },
+          {
+            "symbol": "XAUt",
+            "name": "Tether Gold",
+            "price": 4319.2209082621375,
+            "crypto_id": 5176,
+            "issuer_id": "68904e9cabae9b5b9fb358ac",
+            "issuer_name": "Tether Holdings",
+            "market_cap": 2646920763.33,
+            "volume_24h": 257672233.40998524
+          },
+          {
+            "symbol": "XAUM",
+            "name": "Matrixdock Gold",
+            "price": 4312.861927647436,
+            "crypto_id": 34212,
+            "issuer_id": "68905a7babae9b5b9fb35a8d",
+            "issuer_name": "Matrixdock",
+            "market_cap": 47330438.01,
+            "volume_24h": 420176.35520121
+          },
+          {
+            "symbol": "CGO",
+            "name": "Comtech Gold",
+            "price": 138.69019399067227,
+            "crypto_id": 20245,
+            "issuer_id": "68904cceabae9b5b9fb35839",
+            "issuer_name": "Comtech Gold",
+            "market_cap": 19555317.35,
+            "volume_24h": 900327.46997597
+          },
+          {
+            "symbol": "VNXAU",
+            "name": "VNX Gold",
+            "price": 139.4746515562815,
+            "crypto_id": 22492,
+            "issuer_id": "68905b43abae9b5b9fb35a95",
+            "issuer_name": "VNX",
+            "market_cap": 5871882.83,
+            "volume_24h": 2723.97900224
+          },
+          {
+            "symbol": "XAUT0",
+            "name": "Tether Gold Tokens",
+            "price": 4318.927327520718,
+            "crypto_id": 37082,
+            "issuer_id": "68904e9cabae9b5b9fb358ac",
+            "issuer_name": "Tether Holdings",
+            "market_cap": 16857684.93,
+            "volume_24h": 409025.55172348
+          },
+          {
+            "symbol": "XAU",
+            "name": "Gold (Derivatives)",
+            "price": 4320.506809303751,
+            "crypto_id": 39344,
+            "issuer_id": "695e11f774b54210f3b95dc3",
+            "issuer_name": "NA (Derivatives)",
+            "market_cap": 0,
+            "volume_24h": 0
+          }
+        ],
+        "tradfi_markets": []
       }
-    }
+    ]
+  },
+  "status": {
+    "timestamp": "2026-09-10T23:42:01.428Z",
+    "error_code": "0",
+    "error_message": "",
+    "elapsed": 5,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — captured from a real CMC response, refreshed via npm run verify."
   }
 }

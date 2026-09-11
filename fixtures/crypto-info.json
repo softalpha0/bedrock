@@ -1,0 +1,583 @@
+{
+  "data": {
+    "4705": {
+      "id": 4705,
+      "name": "PAX Gold",
+      "symbol": "PAXG",
+      "category": "token",
+      "slug": "pax-gold",
+      "subreddit": "",
+      "tag-names": [
+        "Ethereum Ecosystem",
+        "Tokenized Gold",
+        "Real World Assets Protocols",
+        "Binance Ecosystem",
+        "Binance Listing",
+        "Tokenized Assets",
+        "Tokenized commodities"
+      ],
+      "tag-groups": [
+        "PLATFORM",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY"
+      ],
+      "urls": {
+        "website": [
+          "https://www.paxg.com/"
+        ],
+        "twitter": [
+          "https://twitter.com/paxosglobal"
+        ],
+        "message_board": [
+          "https://www.paxos.com/blog/pax-gold-the-safest-way-to-own-gold-today"
+        ],
+        "chat": [
+          "https://www.linkedin.com/company/paxos"
+        ],
+        "facebook": [],
+        "explorer": [
+          "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+          "https://solscan.io/token/C6oFsE8nXRDThzrMEQ5SxaNFGKoyyfWDDVPw37JKvPTe",
+          "https://www.oklink.com/eth/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+          "https://explorer.solana.com/address/C6oFsE8nXRDThzrMEQ5SxaNFGKoyyfWDDVPw37JKvPTe"
+        ],
+        "reddit": [],
+        "technical_doc": [
+          "https://www.paxos.com/pax-gold"
+        ],
+        "source_code": [
+          "https://github.com/paxosglobal/paxos-gold-contract"
+        ],
+        "announcement": [
+          "https://www.paxos.com/newsroom/paxos-launches-pax-gold-physical-gold-on-the-blockchain"
+        ]
+      },
+      "twitter_username": "paxosglobal",
+      "is_hidden": 0,
+      "date_launched": "2019-09-05T00:00:00.000Z",
+      "contract_address": [
+        {
+          "contract_address": "0x45804880de22913dafe09f4980848ece6ecbaf78",
+          "platform": {
+            "name": "Ethereum",
+            "coin": {
+              "id": "1027",
+              "name": "Ethereum",
+              "symbol": "ETH",
+              "slug": "ethereum"
+            }
+          }
+        }
+      ],
+      "self_reported_tags": [
+        "Commodities",
+        "Ethereum Ecosystem",
+        "Solana Ecosystem",
+        "Tokenized Gold",
+        "Real World Assets Protocols"
+      ],
+      "infinite_supply": true
+    },
+    "5176": {
+      "id": 5176,
+      "name": "Tether Gold",
+      "symbol": "XAUt",
+      "category": "token",
+      "slug": "tether-gold",
+      "subreddit": "",
+      "tag-names": [
+        "Ethereum Ecosystem",
+        "BNB Chain Ecosystem",
+        "Tokenized Gold",
+        "Real World Assets Protocols",
+        "Binance Ecosystem",
+        "Binance Listing",
+        "Tokenized Assets",
+        "Tokenized commodities",
+        "Binance Liquidity Enhancement Program"
+      ],
+      "tag-groups": [
+        "PLATFORM",
+        "PLATFORM",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY"
+      ],
+      "urls": {
+        "website": [
+          "https://gold.tether.to/"
+        ],
+        "twitter": [
+          "https://twitter.com/tethergold"
+        ],
+        "message_board": [],
+        "chat": [],
+        "facebook": [],
+        "explorer": [
+          "https://etherscan.io/token/0x68749665FF8D2d112Fa859AA293F07A622782F38",
+          "https://bscscan.com/token/0x21cAef8A43163Eea865baeE23b9C2E327696A3bf",
+          "https://ethplorer.io/address/0x68749665FF8D2d112Fa859AA293F07A622782F38"
+        ],
+        "reddit": [],
+        "technical_doc": [],
+        "source_code": [],
+        "announcement": []
+      },
+      "twitter_username": "tethergold",
+      "is_hidden": 0,
+      "date_launched": "2020-01-23T00:00:00.000Z",
+      "contract_address": [
+        {
+          "contract_address": "0x68749665FF8D2d112Fa859AA293F07A622782F38",
+          "platform": {
+            "name": "Ethereum",
+            "coin": {
+              "id": "1027",
+              "name": "Ethereum",
+              "symbol": "ETH",
+              "slug": "ethereum"
+            }
+          }
+        },
+        {
+          "contract_address": "0x21cAef8A43163Eea865baeE23b9C2E327696A3bf",
+          "platform": {
+            "name": "BNB Smart Chain (BEP20)",
+            "coin": {
+              "id": "1839",
+              "name": "BNB",
+              "symbol": "BNB",
+              "slug": "bnb"
+            }
+          }
+        }
+      ],
+      "self_reported_circulating_supply": 48450,
+      "self_reported_market_cap": 209060841.20790425,
+      "infinite_supply": false
+    },
+    "20245": {
+      "id": 20245,
+      "name": "Comtech Gold",
+      "symbol": "CGO",
+      "category": "token",
+      "slug": "comtech-gold",
+      "subreddit": "ComTechGold",
+      "tag-names": [
+        "Tokenized Gold",
+        "XDC Ecosystem",
+        "Real World Assets Protocols",
+        "Tokenized Assets",
+        "Tokenized commodities"
+      ],
+      "tag-groups": [
+        "CATEGORY",
+        "PLATFORM",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY"
+      ],
+      "urls": {
+        "website": [
+          "https://www.comtechgold.com/"
+        ],
+        "twitter": [
+          "https://twitter.com/ComTechOfficial"
+        ],
+        "message_board": [
+          "https://medium.com/@comtech"
+        ],
+        "chat": [
+          "https://discord.gg/T6wNqjXpt2"
+        ],
+        "facebook": [],
+        "explorer": [
+          "https://xdc.blocksscan.io/tokens/0x8f9920283470F52128bF11B0c14E798bE704fD15",
+          "https://xdcscan.com/token/0x8f9920283470f52128bf11b0c14e798be704fd15"
+        ],
+        "reddit": [
+          "https://reddit.com/r/ComTechGold"
+        ],
+        "technical_doc": [
+          "https://www.comtechgold.com/assets/whitepaper/cgo_whitepaper_v1.pdf"
+        ],
+        "source_code": [
+          "https://github.com/ComTechGold"
+        ],
+        "announcement": [
+          "https://t.me/ComTechGold"
+        ]
+      },
+      "twitter_username": "ComTechOfficial",
+      "is_hidden": 0,
+      "date_launched": "2022-05-22T00:00:00.000Z",
+      "contract_address": [
+        {
+          "contract_address": "0x8f9920283470F52128bF11B0c14E798bE704fD15",
+          "platform": {
+            "name": "XDC Network",
+            "coin": {
+              "id": "2634",
+              "name": "XDC Network",
+              "symbol": "XDC",
+              "slug": "xdc-network"
+            }
+          }
+        }
+      ],
+      "self_reported_circulating_supply": 124000,
+      "self_reported_tags": [
+        "Real World Assets Protocols"
+      ],
+      "self_reported_market_cap": 17194825.612352192,
+      "infinite_supply": false
+    },
+    "22492": {
+      "id": 22492,
+      "name": "VNX Gold",
+      "symbol": "VNXAU",
+      "category": "token",
+      "slug": "vnx-gold",
+      "subreddit": "",
+      "tag-names": [
+        "Commodities",
+        "Ethereum Ecosystem",
+        "Asset-Backed Token",
+        "Stellar Ecosystem",
+        "Solana Ecosystem",
+        "Tezos Ecosystem",
+        "Tokenized Gold",
+        "Real World Assets Protocols",
+        "Base Ecosystem",
+        "Q Blockchain Ecosystem",
+        "Tokenized Assets",
+        "Tokenized commodities",
+        "Etherlink Ecosystem"
+      ],
+      "tag-groups": [
+        "INDUSTRY",
+        "PLATFORM",
+        "PLATFORM",
+        "PLATFORM",
+        "PLATFORM",
+        "PLATFORM",
+        "CATEGORY",
+        "CATEGORY",
+        "PLATFORM",
+        "PLATFORM",
+        "CATEGORY",
+        "CATEGORY",
+        "PLATFORM"
+      ],
+      "urls": {
+        "website": [
+          "https://vnx.li/"
+        ],
+        "twitter": [
+          "https://twitter.com/VNX_Platform"
+        ],
+        "message_board": [
+          "https://vnx.li/blog/"
+        ],
+        "chat": [
+          "https://t.me/vnx_li"
+        ],
+        "facebook": [
+          "https://www.facebook.com/vnx.io"
+        ],
+        "explorer": [
+          "https://etherscan.io/token/0x6d57b2e05f26c26b549231c866bdd39779e4a488",
+          "https://solscan.io/token/9TPL8droGJ7jThsq4momaoz6uhTcvX2SeMqipoPmNa8R",
+          "https://basescan.org/token/0xAc3FE22294beaED9d1FD752323a6d06D12Ff3098"
+        ],
+        "reddit": [],
+        "technical_doc": [
+          "https://vnx.gitbook.io/vnx-platform/vnx-gold"
+        ],
+        "source_code": [
+          "https://gitlab.com/vnx/smart-contracts/ethereum-contracts/-/tree/master/contracts"
+        ],
+        "announcement": [
+          "https://t.me/vnx_li"
+        ]
+      },
+      "twitter_username": "VNX_Platform",
+      "is_hidden": 0,
+      "date_launched": "2021-12-14T00:00:00.000Z",
+      "contract_address": [
+        {
+          "contract_address": "0x6d57B2E05F26C26b549231c866bdd39779e4a488",
+          "platform": {
+            "name": "Ethereum",
+            "coin": {
+              "id": "1027",
+              "name": "Ethereum",
+              "symbol": "ETH",
+              "slug": "ethereum"
+            }
+          }
+        },
+        {
+          "contract_address": "9TPL8droGJ7jThsq4momaoz6uhTcvX2SeMqipoPmNa8R",
+          "platform": {
+            "name": "Solana",
+            "coin": {
+              "id": "5426",
+              "name": "Solana",
+              "symbol": "SOL",
+              "slug": "solana"
+            }
+          }
+        },
+        {
+          "contract_address": "VNXAU-GCKIYYQVIFBIFDRN7BNDNHL3UZSFHT5NHDAISG2N3MWCZY3WNXL3LXN3",
+          "platform": {
+            "name": "Stellar",
+            "coin": {
+              "id": "512",
+              "name": "Stellar",
+              "symbol": "XLM",
+              "slug": "stellar"
+            }
+          }
+        },
+        {
+          "contract_address": "KT1LSH97386CURN9FgRNqdQJoHaHY6e1vxUv",
+          "platform": {
+            "name": "Tezos",
+            "coin": {
+              "id": "2011",
+              "name": "Tezos",
+              "symbol": "XTZ",
+              "slug": "tezos"
+            }
+          }
+        },
+        {
+          "contract_address": "0xe4fadbbf24f118b1e63d65f1aac2a825a07f7619",
+          "platform": {
+            "name": "Q Blockchain",
+            "coin": {
+              "id": "1027",
+              "name": "Ethereum",
+              "symbol": "ETH",
+              "slug": "ethereum"
+            }
+          }
+        },
+        {
+          "contract_address": "0xac3fe22294beaed9d1fd752323a6d06d12ff3098",
+          "platform": {
+            "name": "Base",
+            "coin": {
+              "id": "27716",
+              "name": "Base",
+              "symbol": "-",
+              "slug": "base"
+            }
+          }
+        },
+        {
+          "contract_address": "0x93F5475da60143C50e8bE3fED10c143B0CF8b9E9",
+          "platform": {
+            "name": "Etherlink",
+            "coin": {
+              "id": "2011",
+              "name": "Tezos",
+              "symbol": "XTZ",
+              "slug": "tezos"
+            }
+          }
+        }
+      ],
+      "self_reported_circulating_supply": 44000,
+      "self_reported_tags": [
+        "Commodities",
+        "Ethereum Ecosystem",
+        "Stellar Ecosystem",
+        "Solana Ecosystem",
+        "Polygon Ecosystem",
+        "Tezos Ecosystem",
+        "Tokenized Gold",
+        "Base Ecosystem",
+        "Q Blockchain Ecosystem",
+        "Tokenized Assets"
+      ],
+      "self_reported_market_cap": 6121812.261865865,
+      "infinite_supply": true
+    },
+    "34212": {
+      "id": 34212,
+      "name": "Matrixdock Gold",
+      "symbol": "XAUM",
+      "category": "token",
+      "slug": "matrixdock-gold",
+      "subreddit": "",
+      "tag-names": [
+        "Commodities",
+        "Ethereum Ecosystem",
+        "Asset-Backed Token",
+        "BNB Chain Ecosystem",
+        "Tokenized Gold",
+        "Sui Ecosystem",
+        "Real World Assets Protocols",
+        "MoveVM (MVM)",
+        "Tokenized Assets",
+        "Tokenized commodities"
+      ],
+      "tag-groups": [
+        "INDUSTRY",
+        "PLATFORM",
+        "PLATFORM",
+        "PLATFORM",
+        "CATEGORY",
+        "PLATFORM",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY"
+      ],
+      "urls": {
+        "website": [
+          "https://www.matrixdock.com/xaum"
+        ],
+        "twitter": [
+          "https://twitter.com/matrixdock"
+        ],
+        "message_board": [],
+        "chat": [
+          "https://t.me/matrixdock"
+        ],
+        "facebook": [],
+        "explorer": [
+          "https://etherscan.io/token/0x2103E845C5E135493Bb6c2A4f0B8651956eA8682",
+          "https://bscscan.com/token/0x23AE4fd8E7844cdBc97775496eBd0E8248656028"
+        ],
+        "reddit": [],
+        "technical_doc": [],
+        "source_code": [],
+        "announcement": []
+      },
+      "twitter_username": "matrixdock",
+      "is_hidden": 0,
+      "date_launched": "2024-09-17T00:00:00.000Z",
+      "contract_address": [
+        {
+          "contract_address": "0x2103E845C5E135493Bb6c2A4f0B8651956eA8682",
+          "platform": {
+            "name": "Ethereum",
+            "coin": {
+              "id": "1027",
+              "name": "Ethereum",
+              "symbol": "ETH",
+              "slug": "ethereum"
+            }
+          }
+        },
+        {
+          "contract_address": "0x23AE4fd8E7844cdBc97775496eBd0E8248656028",
+          "platform": {
+            "name": "BNB Smart Chain (BEP20)",
+            "coin": {
+              "id": "1839",
+              "name": "BNB",
+              "symbol": "BNB",
+              "slug": "bnb"
+            }
+          }
+        },
+        {
+          "contract_address": "0x9d297676e7a4b771ab023291377b2adfaa4938fb9080b8d12430e4b108b836a9::xaum::XAUM",
+          "platform": {
+            "name": "Sui Network",
+            "coin": {
+              "id": "20947",
+              "name": "Sui",
+              "symbol": "SUI",
+              "slug": "sui"
+            }
+          }
+        }
+      ],
+      "self_reported_circulating_supply": 2057.47,
+      "self_reported_market_cap": 8866012.694565663,
+      "infinite_supply": false
+    },
+    "37082": {
+      "id": 37082,
+      "name": "Tether Gold Tokens",
+      "symbol": "XAUT0",
+      "category": "token",
+      "slug": "tether-gold-tokens",
+      "subreddit": "",
+      "tag-names": [
+        "Tokenized Gold",
+        "Real World Assets Protocols",
+        "Tokenized Assets",
+        "Tokenized commodities",
+        "HyperEVM Ecosystem"
+      ],
+      "tag-groups": [
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "CATEGORY",
+        "PLATFORM"
+      ],
+      "urls": {
+        "website": [
+          "https://gold.usdt0.to/transfer"
+        ],
+        "twitter": [
+          "https://twitter.com/USDT0_to"
+        ],
+        "message_board": [
+          "https://mirror.xyz/tetherzero.eth"
+        ],
+        "chat": [],
+        "facebook": [],
+        "explorer": [
+          "https://hyperliquid.cloud.blockscout.com/token/0xf4d9235269a96aadafc9adae454a0618ebe37949",
+          "https://tonscan.org/address/EQA1R_LuQCLHlMgOo1S4G7Y7W1cd0FrAkbA10Zq7rddKxi9k"
+        ],
+        "reddit": [],
+        "technical_doc": [],
+        "source_code": [],
+        "announcement": []
+      },
+      "twitter_username": "USDT0_to",
+      "is_hidden": 0,
+      "contract_address": [
+        {
+          "contract_address": "0xf4d9235269a96aadafc9adae454a0618ebe37949",
+          "platform": {
+            "name": "HyperEVM",
+            "coin": {
+              "id": "32196",
+              "name": "Hyperliquid",
+              "symbol": "HYPE",
+              "slug": "hyperliquid"
+            }
+          }
+        }
+      ],
+      "infinite_supply": true
+    }
+  },
+  "status": {
+    "timestamp": "2026-09-11T00:03:28.628Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 13,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — captured from a real CMC response, refreshed via npm run verify."
+  }
+}

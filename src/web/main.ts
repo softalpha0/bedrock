@@ -126,9 +126,12 @@ async function loadIssuers(): Promise<void> {
 }
 
 // --- asset detail ("research") view ------------------------------------------
-// CoinMarketCap has no public web page for RWA assets yet (/rwa/* 404s), so the
-// detail view is built in-app from /info (company facts + a Q&A description) and
-// /quotes/latest (live quote + the individual tokens backing the asset).
+// CoinMarketCap has no public web page for an RWA *asset* (/rwa/* 404s), but each
+// individual token that backs it is a listed cryptocurrency with its own CMC
+// profile. The detail view is built from /info (company facts + a Q&A
+// description), /quotes/latest (live quote + backing tokens), and a
+// /v2/cryptocurrency/info lookup that turns each token's crypto_id into its CMC
+// page slug.
 
 const detail = {
   open: false,
@@ -137,8 +140,11 @@ const detail = {
   asset: null as Asset | null,
   info: null as Json,
   quote: null as Json,
+  slugs: {} as Record<string, string>, // crypto_id -> coinmarketcap.com slug
   showRaw: false,
 };
+
+const cmcUrl = (slug: string) => `https://coinmarketcap.com/currencies/${slug}/`;
 
 async function openDetail(asset: Asset): Promise<void> {
   detail.open = true;
@@ -147,6 +153,7 @@ async function openDetail(asset: Asset): Promise<void> {
   detail.asset = asset;
   detail.info = null;
   detail.quote = null;
+  detail.slugs = {};
   detail.showRaw = false;
   render();
 
@@ -165,6 +172,29 @@ async function openDetail(asset: Asset): Promise<void> {
         ? (infoR.reason as Error).message
         : "No detail available for this asset.";
   }
+
+  // Resolve each backing token's CoinMarketCap profile page (best-effort).
+  const tokens: Json[] = Array.isArray(detail.quote?.tokens) ? detail.quote.tokens : [];
+  const ids = [
+    ...new Set(
+      tokens
+        .map((t) => t?.crypto_id)
+        .filter((x): x is number => typeof x === "number" && x > 0),
+    ),
+  ];
+  if (ids.length) {
+    try {
+      const body = await api(`/api/crypto-info?id=${ids.join(",")}`);
+      const data: Json = body?.data ?? {};
+      for (const key of Object.keys(data)) {
+        const c = data[key];
+        if (c?.slug) detail.slugs[String(c.id ?? key)] = String(c.slug);
+      }
+    } catch {
+      /* leave links off if the lookup fails */
+    }
+  }
+
   detail.loading = false;
   render();
 }
@@ -231,6 +261,13 @@ function detailOverlay(): string {
   ).filter(([, v]) => v);
   const desc = String(info?.about?.description ?? info?.description ?? "");
 
+  // Most valuable backing token that has a CoinMarketCap page — used as the
+  // asset's headline "view on CoinMarketCap" link.
+  const primary = [...tokens]
+    .filter((t) => detail.slugs[String(t?.crypto_id)])
+    .sort((x, y) => num(y?.market_cap) - num(x?.market_cap))[0];
+  const primaryCmc = primary ? cmcUrl(detail.slugs[String(primary.crypto_id)] as string) : "";
+
   return `
   <div class="ov" data-ovbackdrop>
     <div class="ov-card" role="dialog" aria-modal="true" aria-label="${esc(a.name)}">
@@ -254,8 +291,9 @@ function detailOverlay(): string {
       }
 
       ${
-        info.website || edgar
+        primaryCmc || info.website || edgar
           ? `<div class="ov-links">
+               ${primaryCmc ? `<a href="${primaryCmc}" target="_blank" rel="noopener noreferrer">CoinMarketCap: ${esc(primary?.symbol ?? "token")} ↗</a>` : ""}
                ${info.website ? `<a href="${esc(info.website)}" target="_blank" rel="noopener noreferrer">Official site ↗</a>` : ""}
                ${edgar ? `<a href="${edgar}" target="_blank" rel="noopener noreferrer">SEC EDGAR filings ↗</a>` : ""}
              </div>`
@@ -268,14 +306,19 @@ function detailOverlay(): string {
              <table class="grid ov-tokens">
                <thead><tr><th>Token</th><th>Issuer</th><th class="r">Price</th><th class="r">Market cap</th></tr></thead>
                <tbody>${tokens
-                 .map(
-                   (tk) => `<tr>
-                     <td><strong>${esc(tk.symbol ?? "")}</strong> <span class="sym">${esc(tk.name ?? "")}</span></td>
+                 .map((tk) => {
+                   const slug = detail.slugs[String(tk?.crypto_id)];
+                   const sym = esc(tk.symbol ?? "");
+                   const symCell = slug
+                     ? `<a href="${cmcUrl(slug)}" target="_blank" rel="noopener noreferrer">${sym}</a>`
+                     : sym;
+                   return `<tr>
+                     <td><strong>${symCell}</strong> <span class="sym">${esc(tk.name ?? "")}</span></td>
                      <td>${esc(tk.issuer_name ?? tk.issuer_id ?? "—")}</td>
                      <td class="r">${fmtUsd(tk.price)}</td>
                      <td class="r">${fmtUsd(tk.market_cap)}</td>
-                   </tr>`,
-                 )
+                   </tr>`;
+                 })
                  .join("")}</tbody>
              </table>`
           : ""

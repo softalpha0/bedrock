@@ -20,6 +20,7 @@ const FIXTURES: Record<string, string> = {
   "/v5/real-world-assets/issuers/list": "issuers-list.json",
   "/v5/real-world-assets/issuers": "issuer.json",
   "/v5/real-world-assets/market-pairs/list": "market-pairs-list.json",
+  "/v2/cryptocurrency/info": "crypto-info.json",
 };
 
 export class CmcError extends Error {

@@ -37,6 +37,12 @@ const ROUTES: Record<string, Spec> = {
     endpoint: "/v5/real-world-assets/market-pairs/list",
     params: ["rwa_id", "rwa_slug", "symbol", "start", "limit"],
   },
+  // Standard (non-RWA) endpoint — resolves a backing token's crypto_id to its
+  // CoinMarketCap page slug so the detail view can link out to it.
+  "/api/crypto-info": {
+    endpoint: "/v2/cryptocurrency/info",
+    params: ["id", "slug", "symbol", "aux"],
+  },
 };
 
 export function registerRoutes(app: Express): void {

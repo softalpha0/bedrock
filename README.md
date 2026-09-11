@@ -25,9 +25,11 @@ payload and the issuer graph.
   Aggregate cards plus a top-12 bar chart.
 - **Asset detail** — click any row for a research view built from `info` +
   `quotes/latest`: live quote, company facts (industry, primary exchange,
-  founded, employees), a link to the company site and to its **SEC EDGAR**
-  filings (via the `cik` field), the individual **tokens backing the asset**
-  with their issuers, a Q&A description, and a raw-JSON toggle.
+  founded, employees), links to the company site, its **SEC EDGAR** filings (via
+  the `cik` field), and its **CoinMarketCap page**, plus every individual
+  **token backing the asset** — each linked to its own CoinMarketCap profile
+  (resolved from `crypto_id` via `/v2/cryptocurrency/info`) — a Q&A description,
+  and a raw-JSON toggle.
 - **Issuers view** — every token issuer and how many instruments it has tokenised.
 - **Mock mode** — with no key set, the server serves bundled sample fixtures so
   the UI runs immediately. A banner makes the data source obvious.
@@ -45,6 +47,7 @@ All under base URL `https://pro-api.coinmarketcap.com`, authenticated with the
 | `/api/issuers` | `GET /v5/real-world-assets/issuers/list` | issuers table |
 | `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail: live quote + backing tokens |
 | `/api/info` | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
+| `/api/crypto-info` | `GET /v2/cryptocurrency/info` | asset detail: resolve each backing token's `crypto_id` → CoinMarketCap page slug |
 | `/api/issuer` | `GET /v5/real-world-assets/issuers` | proxied; single issuer + linked tokens |
 | `/api/map` | `GET /v5/real-world-assets/map` | proxied; id / slug / symbol map |
 | `/api/market-pairs` | `GET /v5/real-world-assets/market-pairs/list` | proxied — **returns 1006 on Startup tier** (see notes) |
@@ -146,10 +149,14 @@ readable Q&A explainer — so a per-asset research page needs no other source.
   endpoints need a higher tier, so this is only discoverable at runtime. The
   route is still proxied; the UI just doesn't depend on it.
 - **RWA assets have no page on coinmarketcap.com yet** (`/rwa/*` and
-  `/currencies/<rwa-slug>/` both 404), so there's no canonical URL to deep-link
-  a user to for research. The detail view is built from `info` instead — the
-  `about.description` (a decent Q&A explainer) and `cik` (→ SEC EDGAR) fill that
-  gap for equities, but there's no equivalent for commodities or funds.
+  `/currencies/<rwa-slug>/` both 404). Each *backing token* does have a CMC page,
+  but the RWA endpoints only give its numeric `crypto_id` — turning that into the
+  `slug` the public URL needs takes a second, non-RWA call to
+  `/v2/cryptocurrency/info`. An RWA response carrying the token `slug` (or a
+  ready URL) directly would remove that round-trip.
+- The `info` endpoint's `about.description` (a solid Q&A explainer) and `cik`
+  (→ SEC EDGAR) are great for equities, but there's no equivalent reference
+  content for commodities or funds.
 
 ---
 

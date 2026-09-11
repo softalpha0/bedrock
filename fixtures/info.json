@@ -1,23 +1,35 @@
 {
-  "status": {
-    "timestamp": "2026-09-10T18:00:00.000Z",
-    "error_code": 0,
-    "error_message": null,
-    "elapsed": 6,
-    "credit_count": 1,
-    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
-  },
   "data": {
-    "90002": {
-      "id": 90002,
-      "name": "Tokenized Apple Inc.",
-      "symbol": "AAPLx",
-      "slug": "tokenized-apple",
-      "asset_type": "stock",
-      "description": "Tokenized exposure to Apple Inc. (AAPL) common stock, issued on-chain by regulated providers and backed 1:1 by shares held in custody.",
-      "underlying": { "ticker": "AAPL", "exchange": "NASDAQ", "isin": "US0378331005" },
-      "issuers": ["Backed Finance", "Dinari"],
-      "urls": { "website": ["https://www.apple.com"] }
-    }
+    "rwa_assets": [
+      {
+        "name": "Gold",
+        "symbol": "GOLD",
+        "slug": "gold",
+        "website": null,
+        "employees": null,
+        "founded": null,
+        "industry": null,
+        "cik": null,
+        "about": {
+          "description": "### What is gold, and why is it considered a safe-haven asset?\n\nWhen markets turn volatile, many investors shift to assets they perceive as stable. Gold tops that list.\n\nGold is a physical commodity and monetary metal that has served as a store of value for thousands of years. It’s considered a “safe haven” because it historically retains purchasing power during inflation, political instability, or financial crises. Unlike fiat currencies, gold cannot be printed or debased by central banks. It doesn’t default, it doesn’t rely on a counterparty, and it tends to perform well when trust in the financial system erodes.\n\n\n### Who controls gold production globally?\n\nNo single entity owns the gold market - but production is concentrated.\n\nGold is mined across the globe, with major producers including China, Russia, Australia, the U.S., and Canada. While governments regulate extraction, most gold mining is conducted by private or public companies like Newmont Corporation, Barrick Gold, and AngloGold Ashanti. Central banks influence reserves and price direction through monetary policy and holdings, but no institution fully controls supply. Production levels depend on geology, mining costs, and geopolitical stability.\n\n\n### How has gold been used historically as money and a store of value?\n\nFiat currencies fade. Empires fall. Gold endures.\n\nFor over 5,000 years, gold has been used as currency, collateral, and a benchmark for monetary systems. It backed national currencies under the gold standard until the 20th century. Even after being replaced by fiat, gold remained a global store of value. In many cultures, gold jewelry also functions as a form of liquid wealth. Its scarcity, durability, and universality have made it a cross-border monetary reserve throughout history.\n\n\n### What factors influence the price of gold (inflation, interest rates, demand)?\n\nGold isn’t just shiny metal - it reacts to macro forces in real time.\n\nKey drivers include inflation expectations, real interest rates, U.S. dollar strength, central bank demand, and geopolitical risk. When inflation rises or interest rates fall, gold tends to strengthen. It also benefits from dollar weakness and flight-to-safety behavior during war or recession. Jewelry demand in countries like India and China, along with ETF inflows and mining supply, adds further short- and long-term price pressure.\n\n\n### Why do investors buy gold in 2025?\n\nIn a world of AI hype, unstable geopolitics, and inflation uncertainty - gold feels familiar.\n\nInvestors in 2025 are allocating to gold as a portfolio hedge against rate cuts, debt monetization, and U.S. dollar depreciation. \n\nPersistent inflation and concerns about financial system fragility have renewed interest in hard assets. Unlike many digital assets, gold has low counterparty risk and high liquidity, especially during global drawdowns. Institutional portfolios often use it to reduce overall volatility.\n\n### How does gold compare to stocks, bonds, and Bitcoin as a hedge?\n\nNot all hedges behave the same - and gold’s track record is longer.\n\nGold typically holds or gains value when stocks fall, making it a defensive asset. It’s uncorrelated with bonds and often outperforms them during inflationary periods. Compared to Bitcoin, gold is less volatile, more regulated, and historically more trusted by institutions. \n\nBitcoin has shown hedge-like qualities during monetary debasement but still trades more like a tech stock. Gold remains the benchmark for traditional risk-off hedging.\n\n\n### What is tokenized gold, and how does it work?\n\nPhysical gold is hard to move - tokenized gold solves that.\n\nTokenized gold represents digital tokens backed 1:1 by physical gold held in vaults. Projects like PAX Gold (PAXG), Tether Gold (XAUT), and Matrixdock tokenize real gold bars stored in secure custodial facilities. Each token reflects the real-time price of gold and can be traded on blockchains like Ethereum or Tron. These assets bring gold into the crypto ecosystem with easier transferability and lower custody friction.\n\n\n### Where can I buy tokenized gold (PAXG, Tether Gold, Matrixdock Gold)?\n\nTokenized gold is available across major crypto platforms.\n\nYou can buy PAXG, XAUT, and other tokenized gold assets on centralized exchanges like Binance, Kraken, or Bitfinex. Some DeFi protocols and DEXs on Ethereum, Arbitrum, and other chains also support them via stablecoin pairs. Availability depends on your location and the exchange’s listing policies. These tokens can be stored in self-custody wallets like MetaMask, making gold accessible to crypto-native users.\n\n\n### Is tokenized gold fully backed by physical gold reserves?\n\nBacking matters - especially when trust is the selling point.\n\nYes, most reputable tokenized gold assets like PAXG and Tether Gold claim to be fully backed by physical gold bars stored in regulated vaults. Issuers publish audit reports and allow token holders to redeem for actual metal under specific conditions. \n\nHowever, redemption policies, jurisdictions, and fees vary. Always verify the custodian details and audit transparency before treating the tokens as equivalent to vault-stored gold.\n\n\n### How is gold being integrated into DeFi and blockchain ecosystems?\n\nDeFi users want low-volatility collateral - and gold fits.\n\nTokenized gold is increasingly used in lending, staking, and synthetic asset protocols. Platforms like [Aave] (https://coinmarketcap.com/currencies/aave/) and DeFiChain allow users to borrow against gold tokens or earn yield through liquidity pools. Unlike stablecoins, gold-backed tokens can preserve purchasing power without relying on fiat pegs. Gold also serves as a collateral layer in emerging real-world asset [(RWA)] (https://coinmarketcap.com/real-world-assets/) protocols that aim to tokenize traditional assets in a permissionless way.\n\n\n### Which blockchains support tokenized gold?\n\nTokenized gold needs scale and security - and blockchains like Ethereum deliver both.\n\nEthereum is the most widely used chain for tokenized gold, with projects like [PAXG] (https://coinmarketcap.com/currencies/pax-gold/) and [XAUT] (https://coinmarketcap.com/currencies/tether-gold/) operating as ERC-20 tokens. Tron offers lower fees and supports alternatives like Tether Gold. Other chains such as [BNB Chain] (https://coinmarketcap.com/currencies/bnb/), Polygon, and Avalanche may also list bridged versions of gold tokens. Interoperability protocols and multichain wallets now make it easy to transfer tokenized gold across ecosystems.\n\n\n### How does tokenized gold compare to [Bitcoin] (https://coinmarketcap.com/currencies/bitcoin/) as “digital gold”?\n\nBitcoin is called digital gold - but tokenized gold is literally that.\n\nTokenized gold tracks the physical commodity directly, backed by vault-stored assets. Bitcoin is a decentralized, fixed-supply digital currency often positioned as a long-term inflation hedge. \n\nWhile Bitcoin has outperformed gold in recent bull markets, it remains more volatile and unbacked. Tokenized gold offers stability and is easier for traditional institutions to integrate into portfolios. The two assets serve different risk profiles and roles within crypto.\n\n\n### Why is the price of gold rising (or falling) today?\n\nGold doesn’t trade on hype - it trades on macro signals.\n\nThe price of gold often rises due to falling real interest rates, central bank accumulation, or geopolitical tensions. It may fall when bond yields rise or the U.S. dollar strengthens. Short-term moves can also result from ETF flows or profit-taking after sharp rallies. In recent years, price shifts have increasingly reflected investor views on monetary policy, inflation expectations, and global de-dollarization trends.\n\n\n### How does gold perform during recessions or stock market crashes?\n\nGold tends to rise when everything else is falling.\n\nDuring recessions or market crashes, gold often outperforms both stocks and risk assets. It held value during the 2008 financial crisis, and in early COVID-19 panic, gold recovered faster than equities. It doesn’t pay dividends, but its role as a hedge and store of value typically attracts capital in risk-off cycles. While not immune to drawdowns, gold usually provides relative stability during systemic stress.",
+          "logo": null,
+          "website": null,
+          "date_added": "2025-07-17T06:57:15.000Z"
+        },
+        "rwa_id": 1,
+        "asset_type": "commodity",
+        "rwa_rank": 1,
+        "has_tokens": true,
+        "primary_exchange": null
+      }
+    ]
+  },
+  "status": {
+    "timestamp": "2026-09-10T23:42:02.431Z",
+    "error_code": "0",
+    "error_message": "",
+    "elapsed": 4,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — captured from a real CMC response, refreshed via npm run verify."
   }
 }
