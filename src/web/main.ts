@@ -718,17 +718,6 @@ function syncUrl(): void {
   }
 }
 
-function usageBadge(): string {
-  const u = state.usage;
-  if (!u.loaded || !u.creditsLimit) return "";
-  const pct = Math.min(100, (u.creditsUsed / u.creditsLimit) * 100);
-  return `
-    <div class="usage-badge" title="CoinMarketCap API credits used this month (resets ${esc(u.resetIn.toLowerCase())})">
-      <span class="usage-bar"><span style="width:${pct.toFixed(2)}%"></span></span>
-      <span>${fmtNum(u.creditsUsed)} / ${fmtNum(u.creditsLimit)} credits</span>
-    </div>`;
-}
-
 function render(): void {
   syncUrl();
   const t = totals();
@@ -751,7 +740,6 @@ function render(): void {
       <div class="brand">
         <h1>Bedrock</h1>
         <p class="tag">Tokenised stocks, treasuries &amp; commodities · CoinMarketCap RWA API</p>
-        ${usageBadge()}
       </div>
       <nav class="tabs">
         <button data-tab="assets" class="${state.tab === "assets" ? "on" : ""}">Assets</button>

@@ -452,29 +452,6 @@ code {
   line-height: 1;
 }
 
-/* usage badge */
-.usage-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  font-size: 11px;
-  color: var(--muted);
-}
-.usage-bar {
-  display: inline-block;
-  width: 90px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  overflow: hidden;
-}
-.usage-bar span {
-  display: block;
-  height: 100%;
-  background: var(--accent-2);
-}
-
 /* watchlist */
 .watch-toggle {
   display: flex;

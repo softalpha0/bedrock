@@ -53,7 +53,6 @@ Treasuries, money-market funds, commodities) and the **25 issuers** behind them.
   view) over a dense dashboard of top movers, biggest spreads, newest launches,
   issuer share, chain share and live API usage — one screen, no tab-hopping
 - **Watchlist**: star assets, saved in the browser, filter the table to them
-- **API usage badge**: live "N / 450,000 credits used" from `/v1/key/info`
 - **Shareable URLs**: tab/search/filter/sort encoded in the URL
 
 The API key never reaches the browser. A small Node/Express service holds it,
@@ -71,7 +70,7 @@ Base `https://pro-api.coinmarketcap.com`, header `X-CMC_PRO_API_KEY`.
 | `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens); scanned across 80 assets for Wrapper spread + issuer/chain share |
 | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
 | `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CMC page slug; scan: `crypto_id` → chain (`platform.name`) |
-| `GET /v1/key/info` | live API-usage badge + Terminal usage panel |
+| `GET /v1/key/info` | Terminal's live API-usage panel |
 | `GET /v5/real-world-assets/issuers` | proxied (single issuer + linked tokens) |
 | `GET /v5/real-world-assets/map` | New & Upcoming: tail-page scan by `rwa_id` for the newest additions |
 | `GET /v5/real-world-assets/market-pairs/list` | proxied — 1006 "plan doesn't support" on Startup tier |

@@ -62,8 +62,6 @@ payload and the issuer graph.
 - **Compare** — check up to 4 assets on the Assets tab and see them side by side
   (type, rank, price, market cap, volume) in a floating panel, from anywhere in
   the app.
-- **API usage badge** — a live "N / 450,000 credits used" indicator in the
-  header, from `/v1/key/info` — the app reports its own footprint on your plan.
 - **Shareable URLs** — tab, search, type filter and sort are encoded in the URL
   (`?tab=spread&q=nvidia`), so any view is linkable or bookmarkable.
 - **Mock mode** — with no key set, the server serves bundled sample fixtures so
@@ -85,7 +83,7 @@ All under base URL `https://pro-api.coinmarketcap.com`, authenticated with the
 | `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens) and, scanned across 80 assets, Wrapper spread + issuer/chain share |
 | `/api/info` | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
 | `/api/crypto-info` | `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CoinMarketCap page slug; scan: `crypto_id` → chain (`platform.name`) |
-| `/api/usage` | `GET /v1/key/info` | the header's live API-usage badge and the Terminal's usage panel |
+| `/api/usage` | `GET /v1/key/info` | Terminal's live API-usage panel |
 | `/api/issuer` | `GET /v5/real-world-assets/issuers` | proxied; single issuer + linked tokens |
 | `/api/map` | `GET /v5/real-world-assets/map` | New & Upcoming: tail-page scan by `rwa_id` for recent additions |
 | `/api/market-pairs` | `GET /v5/real-world-assets/market-pairs/list` | proxied — **returns 1006 on Startup tier** (see notes) |
