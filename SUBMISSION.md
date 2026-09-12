@@ -7,7 +7,9 @@ don't want it public — it's just a scratchpad.
 
 **Name:** Bedrock
 
-**Tagline:** An explorer for tokenised real-world assets, built on the CoinMarketCap RWA API.
+**Tagline:** An explorer for tokenised real-world assets that surfaces what a plain
+screener doesn't — cross-wrapper price spreads, issuer market share, and
+side-by-side comparison — built entirely on the CoinMarketCap RWA API.
 
 **Track:** Real World Assets
 
@@ -33,7 +35,16 @@ Treasuries, money-market funds, commodities) and the **25 issuers** behind them.
   so the tail of `map` is its newest additions. Split into **Newly launched**
   (already has a token) and **Upcoming** (tracked, no token yet) — the RWA API
   exposes no dedicated "upcoming" endpoint, so this is the honest proxy for it
-- Issuers view: every issuer and how many instruments it has tokenised
+- **Wrapper spread**: ranks assets by how far their cheapest and priciest
+  tokenised wrapper diverge right now, computed live from `quotes/latest`'s
+  per-token prices across the top 80 assets by market cap. Spreads over 20% are
+  excluded and counted separately, not shown as real — they're near-always a
+  unit mismatch (a gold wrapper priced per gram vs. one per troy ounce), a data
+  issue this build surfaced and handles rather than presents as arbitrage
+- **Compare**: check up to 4 assets anywhere on the Assets tab, view them side
+  by side from a floating panel
+- Issuers view: every issuer and how many instruments it has tokenised, plus an
+  **issuer market-share chart** from the same wrapper-spread scan
 
 The API key never reaches the browser. A small Node/Express service holds it,
 exposes an allow-list of RWA endpoints, and caches responses ~60s. Front end is
@@ -47,7 +58,7 @@ Base `https://pro-api.coinmarketcap.com`, header `X-CMC_PRO_API_KEY`.
 |---|---|
 | `GET /v5/real-world-assets/assets/list` | main table, aggregates, chart — paginated across all ~7,900 |
 | `GET /v5/real-world-assets/issuers/list` | issuers view |
-| `GET /v5/real-world-assets/quotes/latest` | asset detail: live quote + backing tokens |
+| `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens); scanned across 80 assets for Wrapper spread + issuer market share |
 | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
 | `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CoinMarketCap page slug for each backing token |
 | `GET /v5/real-world-assets/issuers` | proxied (single issuer + linked tokens) |
@@ -111,6 +122,12 @@ interesting shape of this dataset.
   "recently added" / "upcoming" endpoint — New & Upcoming works only because
   `rwa_id` happens to be assigned in onboarding order, discovered by scanning
   the tail of `map`.
+- **No unit field on backing tokens.** Building Wrapper spread, several
+  "wrappers" of the same asset were priced ~31x apart — e.g. gold at ~$140 next
+  to ~$4,350 — because one token is per gram, the other per troy ounce, with
+  nothing in `quotes/latest` distinguishing them. Same on silver. We filter
+  spreads over 20% and report the count separately instead of showing them as
+  real arbitrage.
 
 ---
 

@@ -20,6 +20,25 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : NaN;
 };
 
+/** Runs `fn` over `items` with at most `limit` in flight, collecting results in order. */
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  async function worker(): Promise<void> {
+    for (;;) {
+      const i = next++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i] as T);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
 // The RWA payloads are new and still settling, so read defensively and let the
 // raw-JSON drawer be the source of truth for anything not surfaced here.
 function assetsFrom(body: Json): Json[] {
@@ -76,8 +95,18 @@ const PAGE = 250;
 const MAX_LOADED = 1000;
 const MAX_TABLE_ROWS = 250;
 
+type SpreadRow = {
+  asset: Asset;
+  low: { symbol: string; issuer: string; price: number };
+  high: { symbol: string; issuer: string; price: number };
+  spreadPct: number;
+  tokenCount: number;
+};
+
+type IssuerShare = { issuer: string; mcap: number };
+
 const state = {
-  tab: "assets" as "assets" | "issuers" | "discover",
+  tab: "assets" as "assets" | "issuers" | "discover" | "spread",
   loading: true,
   error: "",
   assets: [] as Asset[],
@@ -97,6 +126,21 @@ const state = {
     launched: [] as Asset[],
     upcoming: [] as Asset[],
   },
+  // Wrapper-spread + issuer-market-share: both derived from the same scan of
+  // quotes/latest across the top assets by market cap, so one fetch feeds two
+  // views instead of two.
+  scan: {
+    loaded: false,
+    loading: false,
+    error: "",
+    scannedCount: 0,
+    excluded: 0,
+    spread: [] as SpreadRow[],
+    issuerShare: [] as IssuerShare[],
+  },
+  // Up to 4 asset ids selected on the Assets tab for side-by-side comparison.
+  compare: new Set<string>(),
+  compareOpen: false,
 };
 
 async function loadAssets(): Promise<void> {
@@ -160,6 +204,90 @@ async function loadNewAndUpcoming(): Promise<void> {
     state.discover.error = (e as Error).message;
   }
   state.discover.loading = false;
+  render();
+}
+
+// --- market scan: wrapper spread + issuer market share -----------------------
+// Neither view exists as a CMC endpoint — both are computed by calling
+// quotes/latest (which returns each asset's individual backing tokens, priced
+// separately) across a bounded slice of the market and aggregating client-side.
+const SCAN_N = 80;
+const SCAN_CONCURRENCY = 8;
+// A ceiling on displayed spread. In practice, anything past this is virtually
+// always a data-quality artifact rather than a real premium/discount — e.g.
+// gold and silver wrappers denominated per gram vs. per troy ounce (a ~31x
+// ratio) with no unit field in the API to tell them apart, or a stale quote on
+// one venue. Filtering keeps the list to spreads worth taking seriously.
+const SPREAD_MAX_PCT = 20;
+
+async function loadMarketScan(): Promise<void> {
+  if (state.scan.loaded || state.scan.loading) return;
+  // A key-less mock deployment returns the same fixture for every rwa_id, which
+  // would render as fabricated-looking duplicate rows — skip the scan there.
+  if (document.body.dataset.mode === "mock") {
+    state.scan.error = "Needs a live CMC_API_KEY — every mock-mode call returns the same sample asset.";
+    state.scan.loaded = true;
+    render();
+    return;
+  }
+
+  state.scan.loading = true;
+  state.scan.error = "";
+  render();
+
+  try {
+    const candidates = state.assets.slice(0, SCAN_N);
+    const issuerMcap = new Map<string, number>();
+    const spread: SpreadRow[] = [];
+    let excluded = 0;
+
+    await mapWithConcurrency(candidates, SCAN_CONCURRENCY, async (asset) => {
+      try {
+        const body = await api(`/api/quotes?rwa_id=${encodeURIComponent(String(asset.id))}&convert=USD`);
+        const rec = body?.data?.rwa_assets?.[0] ?? body?.data;
+        const tokens: Json[] = Array.isArray(rec?.tokens) ? rec.tokens : [];
+        const valid = tokens.filter((t) => num(t?.price) > 0);
+
+        for (const t of valid) {
+          const issuer = String(t.issuer_name ?? t.issuer_id ?? "Unknown issuer");
+          issuerMcap.set(issuer, (issuerMcap.get(issuer) ?? 0) + (num(t.market_cap) || 0));
+        }
+
+        if (valid.length >= 2) {
+          const sorted = [...valid].sort((a, b) => num(a.price) - num(b.price));
+          const low = sorted[0] as Json;
+          const high = sorted[sorted.length - 1] as Json;
+          const spreadPct = ((num(high.price) - num(low.price)) / num(low.price)) * 100;
+          if (!Number.isFinite(spreadPct) || spreadPct <= 0.005) return;
+          if (spreadPct > SPREAD_MAX_PCT) {
+            excluded++; // near-certainly a unit mismatch or a stale quote, not a real spread
+            return;
+          }
+          spread.push({
+            asset,
+            low: { symbol: low.symbol ?? "?", issuer: low.issuer_name ?? low.issuer_id ?? "—", price: num(low.price) },
+            high: { symbol: high.symbol ?? "?", issuer: high.issuer_name ?? high.issuer_id ?? "—", price: num(high.price) },
+            spreadPct,
+            tokenCount: valid.length,
+          });
+        }
+      } catch {
+        /* one asset failing shouldn't sink the whole scan */
+      }
+    });
+
+    spread.sort((a, b) => b.spreadPct - a.spreadPct);
+    state.scan.spread = spread.slice(0, 20);
+    state.scan.excluded = excluded;
+    state.scan.issuerShare = [...issuerMcap.entries()]
+      .map(([issuer, mcap]) => ({ issuer, mcap }))
+      .sort((a, b) => b.mcap - a.mcap);
+    state.scan.scannedCount = candidates.length;
+    state.scan.loaded = true;
+  } catch (e) {
+    state.scan.error = (e as Error).message;
+  }
+  state.scan.loading = false;
   render();
 }
 
@@ -376,6 +504,61 @@ function detailOverlay(): string {
   </div>`;
 }
 
+// --- compare (up to 4 assets, side by side) -----------------------------------
+
+function compareTrigger(): string {
+  if (state.compare.size === 0 || state.compareOpen) return "";
+  return `<button class="cmp-fab" data-cmpopen>Compare (${state.compare.size}) ↗</button>`;
+}
+
+function compareOverlay(): string {
+  if (!state.compareOpen) return "";
+  const rows = [...state.compare]
+    .map((id) => state.assets.find((a) => String(a.id) === id))
+    .filter((a): a is Asset => !!a);
+
+  const metric = (label: string, get: (a: Asset) => string) =>
+    `<tr><th>${esc(label)}</th>${rows.map((a) => `<td>${get(a)}</td>`).join("")}</tr>`;
+
+  return `
+  <div class="ov" data-cmpbackdrop>
+    <div class="ov-card" role="dialog" aria-modal="true" aria-label="Compare assets">
+      <button class="ov-x" data-cmpclose aria-label="Close">×</button>
+      <h2>Compare</h2>
+      ${
+        rows.length
+          ? `<div class="cmp-scroll">
+               <table class="grid cmp-table">
+                 <thead>
+                   <tr>
+                     <th></th>
+                     ${rows
+                       .map(
+                         (a) => `<th>
+                           ${esc(a.name)} <span class="sym">${esc(a.symbol)}</span>
+                           <button class="cmp-x-small" data-cmpremove="${esc(String(a.id))}" aria-label="Remove ${esc(a.name)}">×</button>
+                         </th>`,
+                       )
+                       .join("")}
+                   </tr>
+                 </thead>
+                 <tbody>
+                   ${metric("Type", (a) => `<span class="pill">${esc(a.type)}</span>`)}
+                   ${metric("Rank", (a) => (a.rank ? `#${fmtNum(a.rank)}` : "—"))}
+                   ${metric("Tokenised price", (a) => fmtUsd(a.price))}
+                   ${metric("Market cap", (a) => fmtUsd(a.mcap))}
+                   ${metric("24h volume", (a) => fmtUsd(a.vol))}
+                   ${metric("Tokenised", (a) => (a.hasTokens ? "✓" : "—"))}
+                 </tbody>
+               </table>
+             </div>`
+          : `<p class="muted">Nothing selected — check the box next to an asset on the Assets tab.</p>`
+      }
+      ${rows.length ? `<button class="ov-raw" data-cmpclear>Clear all</button>` : ""}
+    </div>
+  </div>`;
+}
+
 function visibleAssets(): Asset[] {
   let rows = state.assets;
   if (state.type !== "all") rows = rows.filter((r) => r.type === state.type);
@@ -411,7 +594,9 @@ function render(): void {
       ? assetsView(t)
       : state.tab === "issuers"
         ? issuersView()
-        : discoverView();
+        : state.tab === "spread"
+          ? spreadView()
+          : discoverView();
 
   app.innerHTML = `
     <header class="topbar">
@@ -421,6 +606,7 @@ function render(): void {
       </div>
       <nav class="tabs">
         <button data-tab="assets" class="${state.tab === "assets" ? "on" : ""}">Assets</button>
+        <button data-tab="spread" class="${state.tab === "spread" ? "on" : ""}">Spread</button>
         <button data-tab="issuers" class="${state.tab === "issuers" ? "on" : ""}">Issuers</button>
         <button data-tab="discover" class="${state.tab === "discover" ? "on" : ""}">New &amp; Upcoming</button>
       </nav>
@@ -431,6 +617,8 @@ function render(): void {
     ${activeError ? `<div class="error">${esc(activeError)}</div>` : ""}
     ${body}
     ${detailOverlay()}
+    ${compareOverlay()}
+    ${compareTrigger()}
   `;
   bind();
 }
@@ -483,12 +671,13 @@ function assetsView(t: ReturnType<typeof totals>): string {
         all.length > rows.length
           ? `${fmtNum(rows.length)} of ${fmtNum(all.length)} — refine to see more`
           : `${fmtNum(all.length)} shown`
-      } · click a row for detail</span>
+      } · click a row for detail, check a box to compare</span>
     </section>
 
     <table class="grid">
       <thead>
         <tr>
+          <th class="cmp-th"></th>
           <th>Asset</th><th>Type</th>
           <th class="r">Tokenised price</th>
           <th class="r">Market cap</th>
@@ -501,6 +690,9 @@ function assetsView(t: ReturnType<typeof totals>): string {
           .map(
             (r, i) => `
         <tr class="row" data-i="${i}" title="Open ${esc(r.name)} detail">
+          <td class="cmp-cell"><input type="checkbox" data-cmp="${esc(String(r.id))}" ${
+            state.compare.has(String(r.id)) ? "checked" : ""
+          } aria-label="Add ${esc(r.name)} to comparison" /></td>
           <td><strong>${esc(r.name)}</strong> <span class="sym">${esc(r.symbol)}</span></td>
           <td><span class="pill">${esc(r.type)}</span></td>
           <td class="r">${fmtUsd(r.price)}</td>
@@ -515,10 +707,38 @@ function assetsView(t: ReturnType<typeof totals>): string {
   `;
 }
 
+function issuerShareSection(): string {
+  const s = state.scan;
+  if (s.loading) {
+    return `<section class="panel"><h2>Issuer market share</h2><p class="muted">Scanning the top ${SCAN_N} assets by market cap…</p></section>`;
+  }
+  if (s.error) {
+    return `<section class="panel"><h2>Issuer market share</h2><p class="muted">${esc(s.error)}</p></section>`;
+  }
+  if (!s.issuerShare.length) return "";
+  const top = s.issuerShare.slice(0, 10);
+  const rest = s.issuerShare.slice(10).reduce((sum, r) => sum + r.mcap, 0);
+  const bars = rest > 0 ? [...top, { issuer: "Other issuers", mcap: rest }] : top;
+  return `
+    <section class="panel">
+      <h2>Issuer market share</h2>
+      <p class="muted">
+        Tokenised market cap by issuer, aggregated from each backing token's own
+        quote across the top ${fmtNum(s.scannedCount)} assets by market cap —
+        not the full ~7,900-asset universe.
+      </p>
+      ${barChart(
+        bars.map((b) => ({ label: b.issuer, value: b.mcap })),
+        fmtUsd,
+      )}
+    </section>`;
+}
+
 function issuersView(): string {
   const rows = [...state.issuers].sort((a, b) => num(b?.num_tokens) - num(a?.num_tokens));
   const totalTokens = rows.reduce((s, it) => s + (num(it?.num_tokens) || 0), 0);
   return `
+    ${issuerShareSection()}
     <section class="panel">
       <h2>Token issuers</h2>
       <p class="muted">
@@ -595,6 +815,60 @@ function discoverView(): string {
   `;
 }
 
+function spreadView(): string {
+  const s = state.scan;
+  if (s.loading) {
+    return `<section class="panel"><h2>Wrapper spread</h2><p class="muted">Pulling live quotes for the top ${SCAN_N} assets by market cap — a few seconds…</p></section>`;
+  }
+  if (s.error) {
+    return `<section class="panel"><h2>Wrapper spread</h2><p class="muted">${esc(s.error)}</p></section>`;
+  }
+  const rows = s.spread;
+  return `
+    <section class="panel">
+      <h2>Wrapper spread</h2>
+      <p class="muted">
+        When the same real-world asset has more than one tokenised wrapper, this
+        ranks how far the cheapest and priciest wrapper diverge <em>right now</em> —
+        scanned live across the top ${fmtNum(s.scannedCount)} assets by market cap,
+        capped at ${SPREAD_MAX_PCT}%. A snapshot of the market, not investment advice.
+      </p>
+      ${
+        s.excluded > 0
+          ? `<p class="muted cards-note">
+               Excluded ${fmtNum(s.excluded)} pair${s.excluded === 1 ? "" : "s"} with an implausibly
+               large gap (&gt;${SPREAD_MAX_PCT}%) — almost always different wrappers pricing the
+               same asset in different units (e.g. per gram vs. per troy ounce) rather than a
+               real premium, since the API gives no unit field to tell them apart.
+             </p>`
+          : ""
+      }
+      ${
+        rows.length
+          ? `<table class="grid">
+               <thead>
+                 <tr><th>Asset</th><th>Cheapest wrapper</th><th>Priciest wrapper</th><th class="r">Spread</th></tr>
+               </thead>
+               <tbody>
+                 ${rows
+                   .map(
+                     (r, i) => `
+                 <tr class="row" data-i="${i}" title="Open ${esc(r.asset.name)} detail">
+                   <td><strong>${esc(r.asset.name)}</strong> <span class="sym">${esc(r.asset.symbol)}</span></td>
+                   <td>${esc(r.low.symbol)} <span class="sym">${esc(r.low.issuer)}</span> · ${fmtUsd(r.low.price)}</td>
+                   <td>${esc(r.high.symbol)} <span class="sym">${esc(r.high.issuer)}</span> · ${fmtUsd(r.high.price)}</td>
+                   <td class="r">+${r.spreadPct.toFixed(2)}%</td>
+                 </tr>`,
+                   )
+                   .join("")}
+               </tbody>
+             </table>`
+          : `<p class="muted">No meaningful spread among wrappers in the scanned set right now.</p>`
+      }
+    </section>
+  `;
+}
+
 function bind(): void {
   app.querySelectorAll<HTMLButtonElement>(".tabs button").forEach((b) => {
     b.addEventListener("click", () => {
@@ -602,6 +876,9 @@ function bind(): void {
       if (state.tab === "issuers" && state.issuers.length === 0) void loadIssuers();
       else if (state.tab === "discover" && !state.discover.loaded) void loadNewAndUpcoming();
       else render();
+      // Issuer share and Spread are both read from the same scan; trigger it
+      // (idempotent) whichever of the two tabs is opened first.
+      if (state.tab === "issuers" || state.tab === "spread") void loadMarketScan();
     });
   });
 
@@ -635,7 +912,54 @@ function bind(): void {
         const list = tr.dataset.bucket === "l" ? state.discover.launched : state.discover.upcoming;
         const row = list[i];
         if (row) void openDetail(row);
+      } else if (state.tab === "spread") {
+        const row = state.scan.spread[i];
+        if (row) void openDetail(row.asset);
       }
+    });
+  });
+
+  app.querySelectorAll<HTMLInputElement>("[data-cmp]").forEach((cb) => {
+    cb.addEventListener("click", (e) => e.stopPropagation());
+    cb.addEventListener("change", () => {
+      const id = cb.dataset.cmp as string;
+      if (cb.checked) {
+        if (state.compare.size >= 4) {
+          cb.checked = false;
+          return;
+        }
+        state.compare.add(id);
+      } else {
+        state.compare.delete(id);
+      }
+      render();
+    });
+  });
+
+  app.querySelector<HTMLButtonElement>("[data-cmpopen]")?.addEventListener("click", () => {
+    state.compareOpen = true;
+    render();
+  });
+  const cmpBackdrop = app.querySelector<HTMLElement>("[data-cmpbackdrop]");
+  cmpBackdrop?.addEventListener("click", (e) => {
+    if (e.target === cmpBackdrop) {
+      state.compareOpen = false;
+      render();
+    }
+  });
+  app.querySelector<HTMLButtonElement>("[data-cmpclose]")?.addEventListener("click", () => {
+    state.compareOpen = false;
+    render();
+  });
+  app.querySelector<HTMLButtonElement>("[data-cmpclear]")?.addEventListener("click", () => {
+    state.compare.clear();
+    state.compareOpen = false;
+    render();
+  });
+  app.querySelectorAll<HTMLButtonElement>("[data-cmpremove]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.compare.delete(btn.dataset.cmpremove as string);
+      render();
     });
   });
 
@@ -651,7 +975,12 @@ function bind(): void {
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && detail.open) closeDetail();
+  if (e.key !== "Escape") return;
+  if (detail.open) closeDetail();
+  else if (state.compareOpen) {
+    state.compareOpen = false;
+    render();
+  }
 });
 
 void loadAssets();

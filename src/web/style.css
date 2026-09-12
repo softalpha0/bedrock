@@ -64,6 +64,7 @@ body {
 .tabs {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .tabs button {
@@ -395,6 +396,60 @@ code {
   background: var(--surface-2);
   padding: 1px 5px;
   border-radius: 4px;
+}
+
+/* compare: checkbox column, floating trigger, side-by-side table */
+.cmp-th, .cmp-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+.cmp-cell input {
+  cursor: pointer;
+}
+
+.cmp-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: var(--accent);
+  color: #06251c;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  z-index: 40;
+}
+
+.ov-card:has(.cmp-scroll) {
+  max-width: 900px;
+}
+
+.cmp-scroll {
+  overflow-x: auto;
+}
+
+.cmp-table th,
+.cmp-table td {
+  white-space: nowrap;
+}
+.cmp-table thead th {
+  position: relative;
+  padding-right: 24px;
+}
+
+.cmp-x-small {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  line-height: 1;
 }
 
 @media (max-width: 720px) {

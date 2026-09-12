@@ -36,9 +36,23 @@ payload and the issuer graph.
   and **Upcoming** (`has_tokens: false` — recognised as an RWA candidate, not yet
   tokenised). The RWA API has no dedicated "upcoming" endpoint; this is the most
   honest signal it exposes, and it's labelled as such in the UI.
-- **Issuers view** — every token issuer and how many instruments it has tokenised.
+- **Wrapper spread** — the same real-world asset is often tokenised by several
+  issuers at once (e.g. Robinhood's, Ondo's and Backed's NVDA wrapper). This ranks
+  assets by how far their cheapest and priciest wrapper diverge *right now*,
+  computed live from `quotes/latest`'s per-token prices across the top 80 assets
+  by market cap. Spreads over 20% are excluded and counted separately — almost
+  always a unit mismatch (a gold wrapper priced per gram vs. one priced per troy
+  ounce) rather than a real premium; see [Notes on the API](#notes-on-the-api).
+- **Compare** — check up to 4 assets on the Assets tab and see them side by side
+  (type, rank, price, market cap, volume) in a floating panel, from anywhere in
+  the app.
+- **Issuers view** — every token issuer and how many instruments it has
+  tokenised, plus an **issuer market-share chart** built from the same
+  wrapper-spread scan (tokenised market cap aggregated by issuer).
 - **Mock mode** — with no key set, the server serves bundled sample fixtures so
-  the UI runs immediately. A banner makes the data source obvious.
+  the UI runs immediately (Wrapper spread and issuer share are skipped in this
+  mode with an explanation, since every mock call returns the same fixture).
+  A banner makes the data source obvious.
 
 ---
 
@@ -51,7 +65,7 @@ All under base URL `https://pro-api.coinmarketcap.com`, authenticated with the
 |---|---|---|
 | `/api/assets` | `GET /v5/real-world-assets/assets/list` | main asset table, aggregates, chart (paginated across all ~7,900) |
 | `/api/issuers` | `GET /v5/real-world-assets/issuers/list` | issuers table |
-| `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail: live quote + backing tokens |
+| `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens) and, scanned across 80 assets, Wrapper spread + issuer market share |
 | `/api/info` | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
 | `/api/crypto-info` | `GET /v2/cryptocurrency/info` | asset detail: resolve each backing token's `crypto_id` → CoinMarketCap page slug |
 | `/api/issuer` | `GET /v5/real-world-assets/issuers` | proxied; single issuer + linked tokens |
@@ -160,6 +174,13 @@ readable Q&A explainer — so a per-asset research page needs no other source.
   `slug` the public URL needs takes a second, non-RWA call to
   `/v2/cryptocurrency/info`. An RWA response carrying the token `slug` (or a
   ready URL) directly would remove that round-trip.
+- **No unit field on backing tokens.** Building the Wrapper spread view, several
+  "wrappers" of the same asset turned out priced 30x apart — e.g. a gold token at
+  ~$140 next to one at ~$4,350. Both are correct; one is denominated per gram,
+  the other per troy ounce (≈31.1g), and nothing in `quotes/latest` says so. Same
+  pattern on silver. Naively comparing `tokens[].price` across wrappers is
+  unsafe without a unit (or ounce-equivalent price) field; we filter spreads
+  over 20% and count them separately rather than presenting them as real.
 - The `info` endpoint's `about.description` (a solid Q&A explainer) and `cik`
   (→ SEC EDGAR) are great for equities, but there's no equivalent reference
   content for commodities or funds.
