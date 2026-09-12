@@ -38,10 +38,17 @@ const ROUTES: Record<string, Spec> = {
     params: ["rwa_id", "rwa_slug", "symbol", "start", "limit"],
   },
   // Standard (non-RWA) endpoint — resolves a backing token's crypto_id to its
-  // CoinMarketCap page slug so the detail view can link out to it.
+  // CoinMarketCap page slug and chain (platform) for the detail view and the
+  // Terminal's chain breakdown.
   "/api/crypto-info": {
     endpoint: "/v2/cryptocurrency/info",
     params: ["id", "slug", "symbol", "aux"],
+  },
+  // Account introspection — no RWA data, just this key's own plan/usage, shown
+  // as a small transparency badge.
+  "/api/usage": {
+    endpoint: "/v1/key/info",
+    params: [],
   },
 };
 

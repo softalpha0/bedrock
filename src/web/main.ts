@@ -20,6 +20,12 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : NaN;
 };
 
+// A handful of assets/list records (~0.4% of the top 1000) carry rwa_id: null
+// — Asset.id then falls back to their slug. Neither quotes/latest nor info
+// accepts rwa_slug (both return 4001 Invalid parameter), so these have no
+// working lookup at all; skip live calls for them rather than 400ing.
+const hasWorkingId = (asset: Asset): boolean => /^\d+$/.test(String(asset.id));
+
 /** Runs `fn` over `items` with at most `limit` in flight, collecting results in order. */
 async function mapWithConcurrency<T, R>(
   items: T[],
@@ -104,17 +110,46 @@ type SpreadRow = {
 };
 
 type IssuerShare = { issuer: string; mcap: number };
+type ChainShare = { chain: string; mcap: number };
+
+// Browser storage can be unavailable (private mode, blocked site data) — every
+// access is wrapped so the app degrades to a plain in-memory list instead of
+// throwing.
+const WATCHLIST_KEY = "bedrock:watchlist";
+function loadWatchlist(): Set<string> {
+  try {
+    const raw = localStorage.getItem(WATCHLIST_KEY);
+    const ids = raw ? (JSON.parse(raw) as unknown) : [];
+    return new Set(Array.isArray(ids) ? ids.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+function saveWatchlist(ids: Set<string>): void {
+  try {
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify([...ids]));
+  } catch {
+    /* storage unavailable — watchlist just won't survive a reload */
+  }
+}
+
+// Tab, search, filter and sort live in the URL so a specific view is linkable.
+const urlParams = new URLSearchParams(location.search);
+const TABS = ["assets", "spread", "issuers", "discover", "terminal"] as const;
+const SORTS = ["mcap", "vol", "price", "name"] as const;
+const initialTab = TABS.find((t) => t === urlParams.get("tab")) ?? "assets";
+const initialSort = SORTS.find((s) => s === urlParams.get("sort")) ?? "mcap";
 
 const state = {
-  tab: "assets" as "assets" | "issuers" | "discover" | "spread",
+  tab: initialTab as (typeof TABS)[number],
   loading: true,
   error: "",
   assets: [] as Asset[],
   totalAssets: 0,
   issuers: [] as Json[],
-  q: "",
-  type: "all",
-  sort: "mcap" as "mcap" | "vol" | "price" | "name",
+  q: urlParams.get("q") ?? "",
+  type: urlParams.get("type") ?? "all",
+  sort: initialSort as (typeof SORTS)[number],
   discover: {
     loaded: false,
     loading: false,
@@ -126,9 +161,9 @@ const state = {
     launched: [] as Asset[],
     upcoming: [] as Asset[],
   },
-  // Wrapper-spread + issuer-market-share: both derived from the same scan of
-  // quotes/latest across the top assets by market cap, so one fetch feeds two
-  // views instead of two.
+  // Wrapper-spread + issuer-market-share + chain-share: all derived from the
+  // same scan of quotes/latest across the top assets by market cap, so one
+  // fetch feeds three views instead of three separate ones.
   scan: {
     loaded: false,
     loading: false,
@@ -137,10 +172,25 @@ const state = {
     excluded: 0,
     spread: [] as SpreadRow[],
     issuerShare: [] as IssuerShare[],
+    chainShare: [] as ChainShare[],
+  },
+  usage: {
+    loaded: false,
+    error: "",
+    creditsUsed: 0,
+    creditsLimit: 0,
+    resetIn: "",
+    rateLimitPerMin: 0,
   },
   // Up to 4 asset ids selected on the Assets tab for side-by-side comparison.
   compare: new Set<string>(),
   compareOpen: false,
+  // Starred asset ids, persisted locally per browser.
+  watchlist: loadWatchlist(),
+  watchlistOnly: false,
+  // Terminal command box.
+  terminalQuery: "",
+  terminalError: "",
 };
 
 async function loadAssets(): Promise<void> {
@@ -222,6 +272,11 @@ const SPREAD_MAX_PCT = 20;
 
 async function loadMarketScan(): Promise<void> {
   if (state.scan.loaded || state.scan.loading) return;
+  // Guards a startup race: on a direct link into Spread/Issuers/Terminal this
+  // can fire before loadAssets() has populated anything to scan. Don't mark
+  // the scan "loaded" over an empty candidate list — the caller (assetsReady
+  // below, or a later tab click) will retry once assets are actually in.
+  if (state.assets.length === 0) return;
   // A key-less mock deployment returns the same fixture for every rwa_id, which
   // would render as fabricated-looking duplicate rows — skip the scan there.
   if (document.body.dataset.mode === "mock") {
@@ -236,9 +291,10 @@ async function loadMarketScan(): Promise<void> {
   render();
 
   try {
-    const candidates = state.assets.slice(0, SCAN_N);
+    const candidates = state.assets.filter(hasWorkingId).slice(0, SCAN_N);
     const issuerMcap = new Map<string, number>();
     const spread: SpreadRow[] = [];
+    const tokenMcapById = new Map<number, number>();
     let excluded = 0;
 
     await mapWithConcurrency(candidates, SCAN_CONCURRENCY, async (asset) => {
@@ -251,6 +307,8 @@ async function loadMarketScan(): Promise<void> {
         for (const t of valid) {
           const issuer = String(t.issuer_name ?? t.issuer_id ?? "Unknown issuer");
           issuerMcap.set(issuer, (issuerMcap.get(issuer) ?? 0) + (num(t.market_cap) || 0));
+          const cid = num(t.crypto_id);
+          if (cid > 0) tokenMcapById.set(cid, (tokenMcapById.get(cid) ?? 0) + (num(t.market_cap) || 0));
         }
 
         if (valid.length >= 2) {
@@ -282,12 +340,63 @@ async function loadMarketScan(): Promise<void> {
     state.scan.issuerShare = [...issuerMcap.entries()]
       .map(([issuer, mcap]) => ({ issuer, mcap }))
       .sort((a, b) => b.mcap - a.mcap);
+    state.scan.chainShare = await resolveChainShare(tokenMcapById);
     state.scan.scannedCount = candidates.length;
     state.scan.loaded = true;
   } catch (e) {
     state.scan.error = (e as Error).message;
   }
   state.scan.loading = false;
+  render();
+}
+
+// Turns {crypto_id -> market cap} into {chain -> market cap} via
+// /v2/cryptocurrency/info's `platform` field (chunked — CMC bulk-id endpoints
+// have a practical URL-length ceiling, so ~100 ids per call).
+async function resolveChainShare(tokenMcapById: Map<number, number>): Promise<ChainShare[]> {
+  const ids = [...tokenMcapById.keys()];
+  if (!ids.length) return [];
+
+  const CHUNK = 100;
+  const chainById = new Map<number, string>();
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const chunk = ids.slice(i, i + CHUNK);
+    try {
+      const body = await api(`/api/crypto-info?id=${chunk.join(",")}`);
+      const data: Json = body?.data ?? {};
+      for (const key of Object.keys(data)) {
+        const c = data[key];
+        const id = num(c?.id ?? key);
+        // No `platform` means the token is native to its own chain rather than
+        // an ERC-20/SPL-style token issued on top of one.
+        chainById.set(id, String(c?.platform?.name ?? c?.name ?? "Other / native chain"));
+      }
+    } catch {
+      /* this chunk's tokens are left unattributed rather than failing the scan */
+    }
+  }
+
+  const chainMcap = new Map<string, number>();
+  for (const [id, mcap] of tokenMcapById) {
+    const chain = chainById.get(id) ?? "Unknown chain";
+    chainMcap.set(chain, (chainMcap.get(chain) ?? 0) + mcap);
+  }
+  return [...chainMcap.entries()].map(([chain, mcap]) => ({ chain, mcap })).sort((a, b) => b.mcap - a.mcap);
+}
+
+async function loadUsage(): Promise<void> {
+  try {
+    const body = await api("/api/usage");
+    const plan = body?.data?.plan ?? {};
+    const usage = body?.data?.usage?.current_month ?? {};
+    state.usage.creditsUsed = num(usage.credits_used) || 0;
+    state.usage.creditsLimit = num(plan.credit_limit_monthly) || 0;
+    state.usage.rateLimitPerMin = num(plan.rate_limit_minute) || 0;
+    state.usage.resetIn = String(plan.credit_limit_monthly_reset ?? "");
+    state.usage.loaded = true;
+  } catch (e) {
+    state.usage.error = (e as Error).message;
+  }
   render();
 }
 
@@ -322,6 +431,14 @@ async function openDetail(asset: Asset): Promise<void> {
   detail.slugs = {};
   detail.showRaw = false;
   render();
+
+  if (!hasWorkingId(asset)) {
+    detail.error =
+      "CoinMarketCap has no working id for this record (rwa_id is null and rwa_slug isn't accepted by the API) — a small data gap on their side. The raw payload below is everything available.";
+    detail.loading = false;
+    render();
+    return;
+  }
 
   const id = encodeURIComponent(String(asset.id));
   const [infoR, quoteR] = await Promise.allSettled([
@@ -561,6 +678,7 @@ function compareOverlay(): string {
 
 function visibleAssets(): Asset[] {
   let rows = state.assets;
+  if (state.watchlistOnly) rows = rows.filter((r) => state.watchlist.has(String(r.id)));
   if (state.type !== "all") rows = rows.filter((r) => r.type === state.type);
   const q = state.q.trim().toLowerCase();
   if (q) rows = rows.filter((r) => `${r.name} ${r.symbol}`.toLowerCase().includes(q));
@@ -584,7 +702,35 @@ function totals() {
   };
 }
 
+// Keeps tab/search/filter/sort in the URL so a specific view is linkable —
+// never fatal if the History API is unavailable for some reason.
+function syncUrl(): void {
+  try {
+    const p = new URLSearchParams();
+    if (state.tab !== "assets") p.set("tab", state.tab);
+    if (state.q) p.set("q", state.q);
+    if (state.type !== "all") p.set("type", state.type);
+    if (state.sort !== "mcap") p.set("sort", state.sort);
+    const qs = p.toString();
+    history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
+  } catch {
+    /* nice-to-have, never block a render over it */
+  }
+}
+
+function usageBadge(): string {
+  const u = state.usage;
+  if (!u.loaded || !u.creditsLimit) return "";
+  const pct = Math.min(100, (u.creditsUsed / u.creditsLimit) * 100);
+  return `
+    <div class="usage-badge" title="CoinMarketCap API credits used this month (resets ${esc(u.resetIn.toLowerCase())})">
+      <span class="usage-bar"><span style="width:${pct.toFixed(2)}%"></span></span>
+      <span>${fmtNum(u.creditsUsed)} / ${fmtNum(u.creditsLimit)} credits</span>
+    </div>`;
+}
+
 function render(): void {
+  syncUrl();
   const t = totals();
   const isLoading = state.tab === "discover" ? state.discover.loading : state.loading;
   const activeError = state.tab === "discover" ? state.discover.error : state.error;
@@ -596,19 +742,23 @@ function render(): void {
         ? issuersView()
         : state.tab === "spread"
           ? spreadView()
-          : discoverView();
+          : state.tab === "terminal"
+            ? terminalView()
+            : discoverView();
 
   app.innerHTML = `
     <header class="topbar">
       <div class="brand">
         <h1>Bedrock</h1>
         <p class="tag">Tokenised stocks, treasuries &amp; commodities · CoinMarketCap RWA API</p>
+        ${usageBadge()}
       </div>
       <nav class="tabs">
         <button data-tab="assets" class="${state.tab === "assets" ? "on" : ""}">Assets</button>
         <button data-tab="spread" class="${state.tab === "spread" ? "on" : ""}">Spread</button>
         <button data-tab="issuers" class="${state.tab === "issuers" ? "on" : ""}">Issuers</button>
         <button data-tab="discover" class="${state.tab === "discover" ? "on" : ""}">New &amp; Upcoming</button>
+        <button data-tab="terminal" class="${state.tab === "terminal" ? "on" : ""}">⌘ Terminal</button>
       </nav>
     </header>
     <div class="mock-banner">
@@ -667,16 +817,21 @@ function assetsView(t: ReturnType<typeof totals>): string {
         <option value="price" ${state.sort === "price" ? "selected" : ""}>Sort: price</option>
         <option value="name" ${state.sort === "name" ? "selected" : ""}>Sort: name</option>
       </select>
+      <label class="watch-toggle">
+        <input type="checkbox" id="watchonly" ${state.watchlistOnly ? "checked" : ""} />
+        ★ Watchlist only${state.watchlist.size ? ` (${fmtNum(state.watchlist.size)})` : ""}
+      </label>
       <span class="count">${
         all.length > rows.length
           ? `${fmtNum(rows.length)} of ${fmtNum(all.length)} — refine to see more`
           : `${fmtNum(all.length)} shown`
-      } · click a row for detail, check a box to compare</span>
+      } · click a row for detail</span>
     </section>
 
     <table class="grid">
       <thead>
         <tr>
+          <th class="cmp-th"></th>
           <th class="cmp-th"></th>
           <th>Asset</th><th>Type</th>
           <th class="r">Tokenised price</th>
@@ -687,10 +842,17 @@ function assetsView(t: ReturnType<typeof totals>): string {
       </thead>
       <tbody>
         ${rows
-          .map(
-            (r, i) => `
+          .map((r, i) => {
+            const id = esc(String(r.id));
+            const watched = state.watchlist.has(String(r.id));
+            return `
         <tr class="row" data-i="${i}" title="Open ${esc(r.name)} detail">
-          <td class="cmp-cell"><input type="checkbox" data-cmp="${esc(String(r.id))}" ${
+          <td class="cmp-cell">
+            <button class="star-btn ${watched ? "on" : ""}" data-watch="${id}" aria-label="${
+              watched ? "Remove from" : "Add to"
+            } watchlist" title="${watched ? "Remove from" : "Add to"} watchlist">${watched ? "★" : "☆"}</button>
+          </td>
+          <td class="cmp-cell"><input type="checkbox" data-cmp="${id}" ${
             state.compare.has(String(r.id)) ? "checked" : ""
           } aria-label="Add ${esc(r.name)} to comparison" /></td>
           <td><strong>${esc(r.name)}</strong> <span class="sym">${esc(r.symbol)}</span></td>
@@ -699,8 +861,8 @@ function assetsView(t: ReturnType<typeof totals>): string {
           <td class="r">${fmtUsd(r.mcap)}</td>
           <td class="r">${fmtUsd(r.vol)}</td>
           <td class="r">${r.hasTokens ? "✓" : "—"}</td>
-        </tr>`,
-          )
+        </tr>`;
+          })
           .join("")}
       </tbody>
     </table>
@@ -869,6 +1031,96 @@ function spreadView(): string {
   `;
 }
 
+// --- terminal: command lookup + dense dashboard --------------------------------
+
+function findAsset(query: string): Asset | undefined {
+  const q = query.trim().toLowerCase();
+  if (!q) return undefined;
+  return (
+    state.assets.find((a) => a.symbol.toLowerCase() === q) ??
+    state.assets.find((a) => a.name.toLowerCase() === q) ??
+    state.assets.find((a) => a.symbol.toLowerCase().startsWith(q)) ??
+    state.assets.find((a) => a.name.toLowerCase().includes(q))
+  );
+}
+
+function termList(items: Array<{ label: string; sub?: string; right: string }>, emptyMsg: string): string {
+  if (!items.length) return `<p class="muted">${esc(emptyMsg)}</p>`;
+  return `<ol class="term-list">${items
+    .map(
+      (it) =>
+        `<li><span>${esc(it.label)}${it.sub ? ` <span class="sym">${esc(it.sub)}</span>` : ""}</span><span class="r">${it.right}</span></li>`,
+    )
+    .join("")}</ol>`;
+}
+
+function terminalView(): string {
+  const scanEmptyMsg = state.scan.loading
+    ? `Scanning the top ${SCAN_N} assets…`
+    : state.scan.loaded
+      ? "Scan complete — nothing to show here right now."
+      : "Loading assets before the scan can start…";
+
+  const movers = termList(
+    state.assets.slice(0, 8).map((a) => ({ label: a.name, sub: a.symbol, right: fmtUsd(a.mcap) })),
+    "Loading assets…",
+  );
+  const spreadList = termList(
+    state.scan.spread
+      .slice(0, 5)
+      .map((r) => ({ label: r.asset.name, sub: r.asset.symbol, right: `+${r.spreadPct.toFixed(2)}%` })),
+    scanEmptyMsg,
+  );
+  const launchedList = termList(
+    state.discover.launched
+      .slice(0, 5)
+      .map((a) => ({ label: a.name, sub: a.symbol, right: a.rank ? `#${fmtNum(a.rank)}` : "—" })),
+    state.discover.loading ? "Loading…" : "Nothing in the latest batch.",
+  );
+  const issuerList = termList(
+    state.scan.issuerShare.slice(0, 6).map((r) => ({ label: r.issuer, right: fmtUsd(r.mcap) })),
+    scanEmptyMsg,
+  );
+  const chainList = termList(
+    state.scan.chainShare.slice(0, 6).map((r) => ({ label: r.chain, right: fmtUsd(r.mcap) })),
+    scanEmptyMsg,
+  );
+
+  return `
+    <section class="panel term-cmd">
+      <h2>Lookup</h2>
+      <form data-termform>
+        <input id="termq" type="search" autocomplete="off" placeholder="Ticker or name — NVDA, Gold, Robinhood…" value="${esc(state.terminalQuery)}" />
+        <button type="submit">Go ↵</button>
+      </form>
+      <p class="muted">${
+        state.terminalError
+          ? esc(state.terminalError)
+          : "Opens the full research view: live quote, company facts, SEC EDGAR, CoinMarketCap links, backing tokens."
+      }</p>
+    </section>
+
+    <div class="term-grid">
+      <section class="panel"><h2>Top by market cap</h2>${movers}</section>
+      <section class="panel"><h2>Biggest wrapper spreads</h2>${spreadList}</section>
+      <section class="panel"><h2>Newly launched</h2>${launchedList}</section>
+      <section class="panel"><h2>Issuer share</h2>${issuerList}</section>
+      <section class="panel"><h2>Chain share</h2>${chainList}</section>
+      <section class="panel">
+        <h2>API usage</h2>
+        ${
+          state.usage.loaded
+            ? `<p class="muted">
+                 ${fmtNum(state.usage.creditsUsed)} / ${fmtNum(state.usage.creditsLimit)} credits used this month ·
+                 resets ${esc(state.usage.resetIn.toLowerCase())} · ${fmtNum(state.usage.rateLimitPerMin)} req/min limit
+               </p>`
+            : `<p class="muted">${state.usage.error ? esc(state.usage.error) : "Loading…"}</p>`
+        }
+      </section>
+    </div>
+  `;
+}
+
 function bind(): void {
   app.querySelectorAll<HTMLButtonElement>(".tabs button").forEach((b) => {
     b.addEventListener("click", () => {
@@ -876,9 +1128,10 @@ function bind(): void {
       if (state.tab === "issuers" && state.issuers.length === 0) void loadIssuers();
       else if (state.tab === "discover" && !state.discover.loaded) void loadNewAndUpcoming();
       else render();
-      // Issuer share and Spread are both read from the same scan; trigger it
-      // (idempotent) whichever of the two tabs is opened first.
-      if (state.tab === "issuers" || state.tab === "spread") void loadMarketScan();
+      // Issuer share, Spread and the Terminal dashboard all read the same
+      // scan; trigger it (idempotent) whichever tab opens it first.
+      if (state.tab === "issuers" || state.tab === "spread" || state.tab === "terminal") void loadMarketScan();
+      if (state.tab === "terminal" && !state.discover.loaded) void loadNewAndUpcoming();
     });
   });
 
@@ -900,6 +1153,37 @@ function bind(): void {
   app.querySelector<HTMLSelectElement>("#sort")?.addEventListener("change", (e) => {
     state.sort = (e.target as HTMLSelectElement).value as typeof state.sort;
     render();
+  });
+  app.querySelector<HTMLInputElement>("#watchonly")?.addEventListener("change", (e) => {
+    state.watchlistOnly = (e.target as HTMLInputElement).checked;
+    render();
+  });
+
+  app.querySelectorAll<HTMLButtonElement>("[data-watch]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.watch as string;
+      if (state.watchlist.has(id)) state.watchlist.delete(id);
+      else state.watchlist.add(id);
+      saveWatchlist(state.watchlist);
+      render();
+    });
+  });
+
+  app.querySelector<HTMLFormElement>("[data-termform]")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = app.querySelector<HTMLInputElement>("#termq");
+    state.terminalQuery = input?.value ?? "";
+    const hit = findAsset(state.terminalQuery);
+    if (hit) {
+      state.terminalError = "";
+      void openDetail(hit);
+    } else {
+      state.terminalError = state.terminalQuery.trim()
+        ? `No match for "${state.terminalQuery.trim()}" in the loaded assets.`
+        : "";
+      render();
+    }
   });
 
   app.querySelectorAll<HTMLTableRowElement>("tr.row").forEach((tr) => {
@@ -983,4 +1267,14 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-void loadAssets();
+// Deep-linking straight into a tab that reads state.assets (Spread, Issuers'
+// share chart, Terminal) must wait for loadAssets() to actually populate it —
+// loadMarketScan() no-ops on an empty list rather than "completing" with
+// nothing, so chain the retry off this promise instead of racing it.
+const assetsReady = loadAssets();
+void loadUsage();
+void assetsReady.then(() => {
+  if (state.tab === "issuers" || state.tab === "spread" || state.tab === "terminal") void loadMarketScan();
+  if (state.tab === "issuers") void loadIssuers();
+});
+if (state.tab === "discover" || state.tab === "terminal") void loadNewAndUpcoming();

@@ -7,9 +7,10 @@ don't want it public — it's just a scratchpad.
 
 **Name:** Bedrock
 
-**Tagline:** An explorer for tokenised real-world assets that surfaces what a plain
-screener doesn't — cross-wrapper price spreads, issuer market share, and
-side-by-side comparison — built entirely on the CoinMarketCap RWA API.
+**Tagline:** An explorer and command terminal for tokenised real-world assets that
+surfaces what a plain screener doesn't — cross-wrapper price spreads, issuer and
+chain market share, and side-by-side comparison — built entirely on the
+CoinMarketCap RWA API.
 
 **Track:** Real World Assets
 
@@ -45,6 +46,15 @@ Treasuries, money-market funds, commodities) and the **25 issuers** behind them.
   by side from a floating panel
 - Issuers view: every issuer and how many instruments it has tokenised, plus an
   **issuer market-share chart** from the same wrapper-spread scan
+- **Chain share**: the same scan broken down by blockchain instead of issuer —
+  Ethereum, Solana, Arbitrum, BNB, … — on-theme with the hackathon's own
+  chain-neutral framing, resolved via `/v2/cryptocurrency/info`'s `platform`
+- **Terminal**: a command box (type a ticker/name, enter, get the full research
+  view) over a dense dashboard of top movers, biggest spreads, newest launches,
+  issuer share, chain share and live API usage — one screen, no tab-hopping
+- **Watchlist**: star assets, saved in the browser, filter the table to them
+- **API usage badge**: live "N / 450,000 credits used" from `/v1/key/info`
+- **Shareable URLs**: tab/search/filter/sort encoded in the URL
 
 The API key never reaches the browser. A small Node/Express service holds it,
 exposes an allow-list of RWA endpoints, and caches responses ~60s. Front end is
@@ -58,9 +68,10 @@ Base `https://pro-api.coinmarketcap.com`, header `X-CMC_PRO_API_KEY`.
 |---|---|
 | `GET /v5/real-world-assets/assets/list` | main table, aggregates, chart — paginated across all ~7,900 |
 | `GET /v5/real-world-assets/issuers/list` | issuers view |
-| `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens); scanned across 80 assets for Wrapper spread + issuer market share |
+| `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens); scanned across 80 assets for Wrapper spread + issuer/chain share |
 | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
-| `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CoinMarketCap page slug for each backing token |
+| `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CMC page slug; scan: `crypto_id` → chain (`platform.name`) |
+| `GET /v1/key/info` | live API-usage badge + Terminal usage panel |
 | `GET /v5/real-world-assets/issuers` | proxied (single issuer + linked tokens) |
 | `GET /v5/real-world-assets/map` | New & Upcoming: tail-page scan by `rwa_id` for the newest additions |
 | `GET /v5/real-world-assets/market-pairs/list` | proxied — 1006 "plan doesn't support" on Startup tier |
@@ -128,6 +139,12 @@ interesting shape of this dataset.
   nothing in `quotes/latest` distinguishing them. Same on silver. We filter
   spreads over 20% and report the count separately instead of showing them as
   real arbitrage.
+- **4 of the top 1,000 `assets/list` records have `rwa_id: null`** (e.g. a
+  duplicate "Alphabet Inc." alongside the properly populated "Alphabet Inc
+  Class A"), and they have no working lookup at all — `rwa_slug` is accepted as
+  a parameter name but returns `4001 Invalid parameter` on both `quotes/latest`
+  and `info`. Detected and skipped with a clear message instead of firing a
+  request that can't succeed.
 
 ---
 

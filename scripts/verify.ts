@@ -43,6 +43,11 @@ const CALLS = [
     path: "/v5/real-world-assets/map",
     query: { start: "1", limit: "10" },
   },
+  {
+    name: "key-info",
+    path: "/v1/key/info",
+    query: {},
+  },
 ];
 
 const out: string[] = [];

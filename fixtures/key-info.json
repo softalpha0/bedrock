@@ -1,0 +1,23 @@
+{
+  "status": {
+    "timestamp": "2026-09-12T00:00:00.000Z",
+    "error_code": "0",
+    "error_message": "",
+    "elapsed": 3,
+    "credit_count": 1,
+    "notice": "SAMPLE DATA — not a live CoinMarketCap response."
+  },
+  "data": {
+    "plan": {
+      "credit_limit_monthly": 450000,
+      "credit_limit_monthly_reset": "In 18 days, 0 hours, 0 minutes",
+      "credit_limit_monthly_reset_timestamp": "2026-10-01T00:00:00.000Z",
+      "rate_limit_minute": 600
+    },
+    "usage": {
+      "current_minute": { "requests_made": 1, "requests_left": 599 },
+      "current_day": { "credits_used": 0 },
+      "current_month": { "credits_used": 0, "credits_left": 450000 }
+    }
+  }
+}

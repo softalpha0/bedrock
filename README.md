@@ -49,10 +49,27 @@ payload and the issuer graph.
 - **Issuers view** — every token issuer and how many instruments it has
   tokenised, plus an **issuer market-share chart** built from the same
   wrapper-spread scan (tokenised market cap aggregated by issuer).
+- **Terminal** — a command box (type a ticker or name, hit enter, get the full
+  research view — no tab-hopping) above a dense dashboard: top movers, biggest
+  wrapper spreads, newest launches, issuer share, **chain share**, and live API
+  usage, all in one screen.
+- **Chain share** — the hackathon explicitly frames CMC as chain-neutral, so
+  Bedrock breaks the same 80-asset scan down by blockchain instead of just
+  issuer — Ethereum, Solana, Arbitrum, BNB, … — resolved from each backing
+  token's `crypto_id` via `/v2/cryptocurrency/info`'s `platform` field.
+- **Watchlist** — star any asset; it's saved in the browser (no account, no
+  server) and a "Watchlist only" toggle filters the Assets table to it.
+- **Compare** — check up to 4 assets on the Assets tab and see them side by side
+  (type, rank, price, market cap, volume) in a floating panel, from anywhere in
+  the app.
+- **API usage badge** — a live "N / 450,000 credits used" indicator in the
+  header, from `/v1/key/info` — the app reports its own footprint on your plan.
+- **Shareable URLs** — tab, search, type filter and sort are encoded in the URL
+  (`?tab=spread&q=nvidia`), so any view is linkable or bookmarkable.
 - **Mock mode** — with no key set, the server serves bundled sample fixtures so
-  the UI runs immediately (Wrapper spread and issuer share are skipped in this
-  mode with an explanation, since every mock call returns the same fixture).
-  A banner makes the data source obvious.
+  the UI runs immediately (Wrapper spread, issuer share and chain share are
+  skipped in this mode with an explanation, since every mock call returns the
+  same fixture). A banner makes the data source obvious.
 
 ---
 
@@ -65,9 +82,10 @@ All under base URL `https://pro-api.coinmarketcap.com`, authenticated with the
 |---|---|---|
 | `/api/assets` | `GET /v5/real-world-assets/assets/list` | main asset table, aggregates, chart (paginated across all ~7,900) |
 | `/api/issuers` | `GET /v5/real-world-assets/issuers/list` | issuers table |
-| `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens) and, scanned across 80 assets, Wrapper spread + issuer market share |
+| `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens) and, scanned across 80 assets, Wrapper spread + issuer/chain share |
 | `/api/info` | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
-| `/api/crypto-info` | `GET /v2/cryptocurrency/info` | asset detail: resolve each backing token's `crypto_id` → CoinMarketCap page slug |
+| `/api/crypto-info` | `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CoinMarketCap page slug; scan: `crypto_id` → chain (`platform.name`) |
+| `/api/usage` | `GET /v1/key/info` | the header's live API-usage badge and the Terminal's usage panel |
 | `/api/issuer` | `GET /v5/real-world-assets/issuers` | proxied; single issuer + linked tokens |
 | `/api/map` | `GET /v5/real-world-assets/map` | New & Upcoming: tail-page scan by `rwa_id` for recent additions |
 | `/api/market-pairs` | `GET /v5/real-world-assets/market-pairs/list` | proxied — **returns 1006 on Startup tier** (see notes) |
@@ -184,6 +202,14 @@ readable Q&A explainer — so a per-asset research page needs no other source.
 - The `info` endpoint's `about.description` (a solid Q&A explainer) and `cik`
   (→ SEC EDGAR) are great for equities, but there's no equivalent reference
   content for commodities or funds.
+- **A small number of `assets/list` records have `rwa_id: null`** — 4 of the top
+  1,000 by market cap, including "Alphabet Inc." (a duplicate of the properly
+  populated "Alphabet Inc Class A") and "Berkshire Hathaway Inc.". Worse, they
+  have *no* working lookup at all: `quotes/latest?rwa_slug=<slug>` and
+  `info?rwa_slug=<slug>` both return `4001 Invalid parameter`, even though
+  `rwa_slug` is accepted as a parameter name elsewhere in the reference. Bedrock
+  detects this (`hasWorkingId`) and skips the live calls with a clear message
+  instead of firing a doomed request.
 - **No `sort` parameter on `assets/list`** — any value (`id`, `date_added`,
   `market_cap`, …) returns `4001 Invalid parameter`; ordering is fixed to
   `rwa_rank`. There's also no "recently added" or "upcoming" endpoint. Building
