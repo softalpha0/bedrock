@@ -430,11 +430,6 @@ function render(): void {
     </div>
     ${activeError ? `<div class="error">${esc(activeError)}</div>` : ""}
     ${body}
-    <footer>
-      Source: CoinMarketCap Pro API · <code>/v5/real-world-assets/</code>
-      <code>assets/list</code>, <code>issuers/list</code>, <code>quotes/latest</code>, <code>info</code>,
-      <code>map</code> · <code>/v2/cryptocurrency/info</code>
-    </footer>
     ${detailOverlay()}
   `;
   bind();
@@ -537,11 +532,11 @@ function issuersView(): string {
       </thead>
       <tbody>
         ${rows
-          .map((it, i) => {
+          .map((it) => {
             const site = String(it?.website ?? "");
             const host = site ? site.replace(/^https?:\/\//, "").replace(/\/$/, "") : "";
             return `
-        <tr class="row" data-i="${i}">
+        <tr>
           <td><strong>${esc(it?.name ?? it?.issuer_name ?? "Unknown")}</strong></td>
           <td>${
             site
@@ -549,9 +544,6 @@ function issuersView(): string {
               : "—"
           }</td>
           <td class="r">${fmtNum(it?.num_tokens ?? "—")}</td>
-        </tr>
-        <tr class="detail" data-d="${i}" hidden>
-          <td colspan="3"><pre>${esc(JSON.stringify(it, null, 2))}</pre></td>
         </tr>`;
           })
           .join("")}
@@ -643,9 +635,6 @@ function bind(): void {
         const list = tr.dataset.bucket === "l" ? state.discover.launched : state.discover.upcoming;
         const row = list[i];
         if (row) void openDetail(row);
-      } else {
-        const d = app.querySelector<HTMLTableRowElement>(`tr.detail[data-d="${i}"]`);
-        if (d) d.hidden = !d.hidden;
       }
     });
   });
