@@ -51,8 +51,8 @@ payload and the issuer graph.
   wrapper-spread scan (tokenised market cap aggregated by issuer).
 - **Terminal** — a command box (type a ticker or name, hit enter, get the full
   research view — no tab-hopping) above a dense dashboard: top movers, biggest
-  wrapper spreads, newest launches, issuer share, **chain share**, and live API
-  usage, all in one screen.
+  wrapper spreads, newest launches, issuer share and **chain share**, all in one
+  screen.
 - **Chain share** — the hackathon explicitly frames CMC as chain-neutral, so
   Bedrock breaks the same 80-asset scan down by blockchain instead of just
   issuer — Ethereum, Solana, Arbitrum, BNB, … — resolved from each backing
@@ -83,7 +83,6 @@ All under base URL `https://pro-api.coinmarketcap.com`, authenticated with the
 | `/api/quotes` | `GET /v5/real-world-assets/quotes/latest` | asset detail (live quote + backing tokens) and, scanned across 80 assets, Wrapper spread + issuer/chain share |
 | `/api/info` | `GET /v5/real-world-assets/info` | asset detail: company facts, `cik`, Q&A description |
 | `/api/crypto-info` | `GET /v2/cryptocurrency/info` | asset detail: `crypto_id` → CoinMarketCap page slug; scan: `crypto_id` → chain (`platform.name`) |
-| `/api/usage` | `GET /v1/key/info` | Terminal's live API-usage panel |
 | `/api/issuer` | `GET /v5/real-world-assets/issuers` | proxied; single issuer + linked tokens |
 | `/api/map` | `GET /v5/real-world-assets/map` | New & Upcoming: tail-page scan by `rwa_id` for recent additions |
 | `/api/market-pairs` | `GET /v5/real-world-assets/market-pairs/list` | proxied — **returns 1006 on Startup tier** (see notes) |

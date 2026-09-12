@@ -44,12 +44,6 @@ const ROUTES: Record<string, Spec> = {
     endpoint: "/v2/cryptocurrency/info",
     params: ["id", "slug", "symbol", "aux"],
   },
-  // Account introspection — no RWA data, just this key's own plan/usage, shown
-  // as a small transparency badge.
-  "/api/usage": {
-    endpoint: "/v1/key/info",
-    params: [],
-  },
 };
 
 export function registerRoutes(app: Express): void {

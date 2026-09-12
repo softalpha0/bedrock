@@ -174,14 +174,6 @@ const state = {
     issuerShare: [] as IssuerShare[],
     chainShare: [] as ChainShare[],
   },
-  usage: {
-    loaded: false,
-    error: "",
-    creditsUsed: 0,
-    creditsLimit: 0,
-    resetIn: "",
-    rateLimitPerMin: 0,
-  },
   // Up to 4 asset ids selected on the Assets tab for side-by-side comparison.
   compare: new Set<string>(),
   compareOpen: false,
@@ -382,22 +374,6 @@ async function resolveChainShare(tokenMcapById: Map<number, number>): Promise<Ch
     chainMcap.set(chain, (chainMcap.get(chain) ?? 0) + mcap);
   }
   return [...chainMcap.entries()].map(([chain, mcap]) => ({ chain, mcap })).sort((a, b) => b.mcap - a.mcap);
-}
-
-async function loadUsage(): Promise<void> {
-  try {
-    const body = await api("/api/usage");
-    const plan = body?.data?.plan ?? {};
-    const usage = body?.data?.usage?.current_month ?? {};
-    state.usage.creditsUsed = num(usage.credits_used) || 0;
-    state.usage.creditsLimit = num(plan.credit_limit_monthly) || 0;
-    state.usage.rateLimitPerMin = num(plan.rate_limit_minute) || 0;
-    state.usage.resetIn = String(plan.credit_limit_monthly_reset ?? "");
-    state.usage.loaded = true;
-  } catch (e) {
-    state.usage.error = (e as Error).message;
-  }
-  render();
 }
 
 // --- asset detail ("research") view ------------------------------------------
@@ -1094,17 +1070,6 @@ function terminalView(): string {
       <section class="panel"><h2>Newly launched</h2>${launchedList}</section>
       <section class="panel"><h2>Issuer share</h2>${issuerList}</section>
       <section class="panel"><h2>Chain share</h2>${chainList}</section>
-      <section class="panel">
-        <h2>API usage</h2>
-        ${
-          state.usage.loaded
-            ? `<p class="muted">
-                 ${fmtNum(state.usage.creditsUsed)} / ${fmtNum(state.usage.creditsLimit)} credits used this month ·
-                 resets ${esc(state.usage.resetIn.toLowerCase())} · ${fmtNum(state.usage.rateLimitPerMin)} req/min limit
-               </p>`
-            : `<p class="muted">${state.usage.error ? esc(state.usage.error) : "Loading…"}</p>`
-        }
-      </section>
     </div>
   `;
 }
@@ -1260,7 +1225,6 @@ document.addEventListener("keydown", (e) => {
 // loadMarketScan() no-ops on an empty list rather than "completing" with
 // nothing, so chain the retry off this promise instead of racing it.
 const assetsReady = loadAssets();
-void loadUsage();
 void assetsReady.then(() => {
   if (state.tab === "issuers" || state.tab === "spread" || state.tab === "terminal") void loadMarketScan();
   if (state.tab === "issuers") void loadIssuers();
