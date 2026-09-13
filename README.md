@@ -64,6 +64,11 @@ payload and the issuer graph.
   the app.
 - **Shareable URLs** — tab, search, type filter and sort are encoded in the URL
   (`?tab=spread&q=nvidia`), so any view is linkable or bookmarkable.
+- **CSV export** — a "⤓ CSV" button on Assets, Issuers, Spread and New &
+  Upcoming downloads exactly what's on screen (current filter/sort, raw
+  numbers rather than "$4.4K"-style display strings, missing data left blank
+  rather than `0`) — client-side, no extra request, for anyone who wants to
+  take the data into a spreadsheet or notebook.
 - **Mock mode** — with no key set, the server serves bundled sample fixtures so
   the UI runs immediately (Wrapper spread, issuer share and chain share are
   skipped in this mode with an explanation, since every mock call returns the

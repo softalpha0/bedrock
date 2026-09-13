@@ -54,6 +54,9 @@ Treasuries, money-market funds, commodities) and the **25 issuers** behind them.
   issuer share and chain share — one screen, no tab-hopping
 - **Watchlist**: star assets, saved in the browser, filter the table to them
 - **Shareable URLs**: tab/search/filter/sort encoded in the URL
+- **CSV export**: one click on Assets, Issuers, Spread or New & Upcoming
+  downloads exactly the filtered/sorted rows on screen, raw numbers instead of
+  display strings, missing data left blank rather than a misleading `0`
 
 The API key never reaches the browser. A small Node/Express service holds it,
 exposes an allow-list of RWA endpoints, and caches responses ~60s. Front end is

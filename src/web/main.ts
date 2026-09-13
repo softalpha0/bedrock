@@ -1,5 +1,5 @@
 import "./style.css";
-import { fmtUsd, fmtNum, esc } from "./format.js";
+import { fmtUsd, fmtNum, esc, toCsv, downloadCsv } from "./format.js";
 import { barChart } from "./charts.js";
 
 type Json = any;
@@ -802,6 +802,7 @@ function assetsView(t: ReturnType<typeof totals>): string {
         <input type="checkbox" id="watchonly" ${state.watchlistOnly ? "checked" : ""} />
         ★ Watchlist only${state.watchlist.size ? ` (${fmtNum(state.watchlist.size)})` : ""}
       </label>
+      <button type="button" class="csv-btn" data-csv="assets" title="Download the ${fmtNum(all.length)} filtered rows as CSV">⤓ CSV</button>
       <span class="count">${
         all.length > rows.length
           ? `${fmtNum(rows.length)} of ${fmtNum(all.length)} — refine to see more`
@@ -888,6 +889,7 @@ function issuersView(): string {
         ${fmtNum(rows.length)} issuers · ${fmtNum(totalTokens)} tokenised instruments ·
         <code>/v5/real-world-assets/issuers/list</code>
       </p>
+      <button type="button" class="csv-btn" data-csv="issuers">⤓ CSV</button>
     </section>
     <table class="grid">
       <thead>
@@ -944,6 +946,11 @@ function discoverView(): string {
         CoinMarketCap's most recent RWA-universe additions that already have a
         live token backing them — by <code>rwa_id</code>, its onboarding order.
       </p>
+      ${
+        d.launched.length || d.upcoming.length
+          ? `<button type="button" class="csv-btn" data-csv="discover">⤓ CSV (both lists)</button>`
+          : ""
+      }
       ${discoverTable("l", d.launched, "Nothing newly tokenised in the latest batch.")}
     </section>
     <section class="panel">
@@ -976,6 +983,7 @@ function spreadView(): string {
         scanned live across the top ${fmtNum(s.scannedCount)} assets by market cap,
         capped at ${SPREAD_MAX_PCT}%. A snapshot of the market, not investment advice.
       </p>
+      ${rows.length ? `<button type="button" class="csv-btn" data-csv="spread">⤓ CSV</button>` : ""}
       ${
         s.excluded > 0
           ? `<p class="muted cards-note">
@@ -1091,7 +1099,98 @@ function terminalView(): string {
   `;
 }
 
+// --- CSV export -----------------------------------------------------------
+// Every export reflects the current filter/sort exactly as shown, pulling from
+// the same in-memory state the tables render from — no extra API calls.
+
+const dateStamp = () => new Date().toISOString().slice(0, 10);
+
+function exportAssetsCsv(): void {
+  const rows = visibleAssets();
+  const csv = toCsv(
+    ["rwa_id", "name", "symbol", "asset_type", "rank", "tokenised_price_usd", "market_cap_usd", "volume_24h_usd", "has_tokens"],
+    rows.map((a) => [
+      a.id,
+      a.name,
+      a.symbol,
+      a.type,
+      Number.isFinite(a.rank) ? a.rank : "",
+      Number.isFinite(a.price) ? a.price : "",
+      Number.isFinite(a.mcap) ? a.mcap : "",
+      Number.isFinite(a.vol) ? a.vol : "",
+      a.hasTokens,
+    ]),
+  );
+  downloadCsv(`bedrock-assets-${dateStamp()}.csv`, csv);
+}
+
+function exportIssuersCsv(): void {
+  const rows = [...state.issuers].sort((a, b) => num(b?.num_tokens) - num(a?.num_tokens));
+  const csv = toCsv(
+    ["issuer_id", "name", "website", "tokens_issued"],
+    rows.map((it) => [
+      it?.issuer_id ?? it?.id ?? "",
+      it?.name ?? it?.issuer_name ?? "",
+      it?.website ?? "",
+      Number.isFinite(num(it?.num_tokens)) ? num(it?.num_tokens) : "",
+    ]),
+  );
+  downloadCsv(`bedrock-issuers-${dateStamp()}.csv`, csv);
+}
+
+function exportSpreadCsv(): void {
+  const csv = toCsv(
+    [
+      "asset_name",
+      "asset_symbol",
+      "rwa_id",
+      "cheapest_symbol",
+      "cheapest_issuer",
+      "cheapest_price_usd",
+      "priciest_symbol",
+      "priciest_issuer",
+      "priciest_price_usd",
+      "spread_pct",
+    ],
+    state.scan.spread.map((r) => [
+      r.asset.name,
+      r.asset.symbol,
+      r.asset.id,
+      r.low.symbol,
+      r.low.issuer,
+      r.low.price,
+      r.high.symbol,
+      r.high.issuer,
+      r.high.price,
+      Number(r.spreadPct.toFixed(2)),
+    ]),
+  );
+  downloadCsv(`bedrock-wrapper-spread-${dateStamp()}.csv`, csv);
+}
+
+function exportDiscoverCsv(): void {
+  const rows: Array<Asset & { status: string }> = [
+    ...state.discover.launched.map((a) => ({ ...a, status: "newly_launched" })),
+    ...state.discover.upcoming.map((a) => ({ ...a, status: "upcoming" })),
+  ];
+  const csv = toCsv(
+    ["rwa_id", "name", "symbol", "asset_type", "rank", "status"],
+    rows.map((a) => [a.id, a.name, a.symbol, a.type, Number.isFinite(a.rank) ? a.rank : "", a.status]),
+  );
+  downloadCsv(`bedrock-new-and-upcoming-${dateStamp()}.csv`, csv);
+}
+
 function bind(): void {
+  app.querySelectorAll<HTMLButtonElement>("[data-csv]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const kind = btn.dataset.csv;
+      if (kind === "assets") exportAssetsCsv();
+      else if (kind === "issuers") exportIssuersCsv();
+      else if (kind === "spread") exportSpreadCsv();
+      else if (kind === "discover") exportDiscoverCsv();
+    });
+  });
+
   app.querySelectorAll<HTMLButtonElement>(".tabs button").forEach((b) => {
     b.addEventListener("click", () => {
       state.tab = b.dataset.tab as typeof state.tab;

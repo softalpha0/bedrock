@@ -29,3 +29,33 @@ const ENTITIES: Record<string, string> = {
 export function esc(value: unknown): string {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ENTITIES[c] as string);
 }
+
+/** RFC 4180-ish CSV serialisation: quotes a field only if it needs it. */
+export function toCsv(headers: string[], rows: Array<Array<string | number | boolean | null | undefined>>): string {
+  const field = (v: string | number | boolean | null | undefined) => {
+    if (v === null || v === undefined) return "";
+    const s = String(v);
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = [headers.map(field).join(",")];
+  for (const row of rows) lines.push(row.map(field).join(","));
+  return lines.join("\r\n");
+}
+
+/**
+ * Triggers a browser download of `csv` as `filename`. A UTF-8 BOM is
+ * prepended so Excel (the tool most researchers will actually open this in)
+ * doesn't mangle non-ASCII characters.
+ */
+export function downloadCsv(filename: string, csv: string): void {
+  const BOM = "﻿";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
