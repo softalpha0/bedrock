@@ -196,6 +196,14 @@ readable Q&A explainer — so a per-asset research page needs no other source.
   pattern on silver. Naively comparing `tokens[].price` across wrappers is
   unsafe without a unit (or ounce-equivalent price) field; we filter spreads
   over 20% and count them separately rather than presenting them as real.
+- **`tokenized_market_cap: 0` next to a real, non-zero price.** ~0.6% of the top
+  1,000 assets (Silver, Cloudflare, Intercontinental Exchange, Atlassian, Flex,
+  Tempus AI) report a genuine tokenised price and 24h volume but a literal `0`
+  market cap — inconsistent, since a priced, traded token implies some
+  circulating supply. We treat that specific combination (price > 0, cap === 0)
+  as missing data and render "—" rather than a misleading `$0.00`, both in the
+  table and in the asset-detail overlay's live quote (which pulls fresh from
+  `quotes/latest` and has the same issue independently of `assets/list`).
 - The `info` endpoint's `about.description` (a solid Q&A explainer) and `cik`
   (→ SEC EDGAR) are great for equities, but there's no equivalent reference
   content for commodities or funds.

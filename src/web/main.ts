@@ -80,16 +80,25 @@ function toAsset(a: Json): Asset {
     a?.quote?.USD ??
     a?.quote?.usd ??
     {};
+  const hasTok = a?.has_tokens === true || num(a?.num_tokens) > 0;
+  const price = num(a?.average_tokenized_price ?? q.average_tokenized_price ?? a?.price ?? q.price);
+  const rawMcap = num(a?.tokenized_market_cap ?? q.tokenized_market_cap ?? a?.market_cap ?? q.market_cap);
+  // A handful of tokenised assets (~0.6% of the top 1,000 — Silver, Cloudflare,
+  // ICE, Atlassian, ...) come back with a real price but tokenized_market_cap
+  // exactly 0, which is inconsistent with having a price at all. Treat that as
+  // missing data ("—") rather than a literal, misleading $0.
+  const mcap = rawMcap === 0 && hasTok && price > 0 ? NaN : rawMcap;
+
   return {
     id: a?.rwa_id ?? a?.id ?? a?.slug ?? "",
     name: a?.name ?? a?.asset_name ?? "Unknown",
     symbol: a?.symbol ?? a?.ticker ?? "",
     type: String(a?.asset_type ?? a?.type ?? a?.category ?? "—"),
     rank: num(a?.rwa_rank ?? a?.rank),
-    price: num(a?.average_tokenized_price ?? q.average_tokenized_price ?? a?.price ?? q.price),
-    mcap: num(a?.tokenized_market_cap ?? q.tokenized_market_cap ?? a?.market_cap ?? q.market_cap),
+    price,
+    mcap,
     vol: num(a?.tokenized_volume_24h ?? q.tokenized_volume_24h ?? a?.volume_24h ?? q.volume_24h),
-    hasTokens: a?.has_tokens === true || num(a?.num_tokens) > 0,
+    hasTokens: hasTok,
     raw: a,
   };
 }
@@ -520,6 +529,14 @@ function detailOverlay(): string {
   ).filter(([, v]) => v);
   const desc = String(info?.about?.description ?? info?.description ?? "");
 
+  const livePrice = num(q.average_tokenized_price ?? a.price);
+  const liveMcapRaw = num(q.tokenized_market_cap);
+  // Same data-quality guard as toAsset(): a fresh quote can itself report
+  // market_cap: 0 next to a real price (Silver, Cloudflare, ... do this) — ??
+  // won't fall through on a defined 0, so check for it explicitly.
+  const liveMcap = liveMcapRaw === 0 && livePrice > 0 ? NaN : liveMcapRaw;
+  const displayMcap = Number.isFinite(liveMcap) ? liveMcap : a.mcap;
+
   // Most valuable backing token that has a CoinMarketCap page — used as the
   // asset's headline "view on CoinMarketCap" link.
   const primary = [...tokens]
@@ -536,8 +553,8 @@ function detailOverlay(): string {
       ${detail.error ? `<div class="error">${esc(detail.error)}</div>` : ""}
 
       <div class="ov-quote">
-        <div><span>Tokenised price</span><strong>${fmtUsd(q.average_tokenized_price ?? a.price)}</strong></div>
-        <div><span>Tokenised market cap</span><strong>${fmtUsd(q.tokenized_market_cap ?? a.mcap)}</strong></div>
+        <div><span>Tokenised price</span><strong>${fmtUsd(livePrice)}</strong></div>
+        <div><span>Tokenised market cap</span><strong>${fmtUsd(displayMcap)}</strong></div>
         <div><span>24h tokenised volume</span><strong>${fmtUsd(q.tokenized_volume_24h ?? a.vol)}</strong></div>
       </div>
 

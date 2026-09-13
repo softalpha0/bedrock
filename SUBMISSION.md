@@ -143,6 +143,12 @@ interesting shape of this dataset.
   a parameter name but returns `4001 Invalid parameter` on both `quotes/latest`
   and `info`. Detected and skipped with a clear message instead of firing a
   request that can't succeed.
+- **`tokenized_market_cap: 0` next to a real price.** ~0.6% of the top 1,000
+  (Silver, Cloudflare, ICE, Atlassian, Flex, Tempus AI) have a genuine price and
+  24h volume but a literal `0` market cap — inconsistent, since a priced,
+  traded token implies real supply. Treated as missing data ("—"), not a
+  misleading `$0.00`; fixed independently in both `assets/list` and the
+  detail overlay's `quotes/latest` call, which hits the same bug on its own.
 
 ---
 
