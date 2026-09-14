@@ -6,19 +6,24 @@ money-market funds, commodities and the issuers behind them — built entirely o
 
 > Submission for the **Build with CMC: API Hackathon** · Track: **Real World Assets**
 >
-> **Live demo:** https://bedrock-rygi.onrender.com &nbsp;(`/api/health` returns `{"ok":true,"mode":"live"}`)
+> **Live demo:** https://bedrock-rygi.onrender.com &nbsp;(app: [`/app`](https://bedrock-rygi.onrender.com/app) ·
+> health check: `/api/health` → `{"ok":true,"mode":"live"}`)
 > — free Render instance, sleeps after 15 min idle; first request may take ~50s to wake.
 
-The browser never sees the API key. A small Node/Express service holds the key,
-proxies an allow-list of RWA endpoints, caches responses for ~60s, and serves a
-zero-dependency TypeScript single-page front end that ranks assets by tokenised
-market cap, breaks them down by asset type, and lets you drill into the raw
-payload and the issuer graph.
+The browser never sees the API key. A small Node/Express service holds the
+key, proxies an allow-list of RWA endpoints, and caches responses for ~60s. A
+marketing landing page sits at `/`; the actual explorer — a zero-dependency
+TypeScript single-page app that ranks assets by tokenised market cap, ranks
+wrapper price spreads, breaks down issuer and chain share, and lets you drill
+into every asset's research view — lives at `/app`.
 
 ---
 
 ## What it does
 
+- **Landing page** — `/` explains what the app does with a live stat strip
+  (assets and issuers pulled from the API on page load, not hardcoded) before
+  sending you into the explorer at `/app`.
 - **Assets view** — the top 1,000 RWAs by tokenised market cap (the API tracks
   ~7,900) with tokenised price, market cap and 24h volume; search, filter by
   asset type (`stock`, `commodity`, `government-security`, `etf`, …), sort.
@@ -104,7 +109,7 @@ Requires Node 20+.
 ```bash
 npm install
 cp .env.example .env      # then paste your CMC key into CMC_API_KEY
-npm run dev                # web on http://localhost:5173, API on :8787
+npm run dev                # landing on :5173, app on :5173/app.html, API on :8787
 ```
 
 Without a key it still runs — in **mock mode** against `fixtures/`.
@@ -112,9 +117,13 @@ Without a key it still runs — in **mock mode** against `fixtures/`.
 ### Production
 
 ```bash
-npm run build              # bundles the SPA to dist/web
-npm start                  # single process serves the SPA + /api on :8787
+npm run build              # bundles the landing page + app to dist/web
+npm start                  # single process serves both + /api on :8787
 ```
+
+In production the app is at `/app` (Express rewrites it to `app.html`); in
+Vite's dev server it's the literal file, `/app.html` — see
+[`vite.config.ts`](vite.config.ts) for the two-entry build.
 
 Deploy target: any Node host. The only required env var is `CMC_API_KEY`; `PORT`
 is read from the environment when the host sets it (defaults to `8787`).
@@ -232,10 +241,16 @@ readable Q&A explainer — so a per-asset research page needs no other source.
 ## Project layout
 
 ```
-src/server/   Express service: CMC client, TTL cache, allow-listed proxy routes
-src/web/      Zero-dependency TypeScript SPA (tables, filters, SVG bar chart)
-scripts/      verify.ts — real API call + evidence capture
-fixtures/     Sample RWA payloads used in mock mode
+src/server/       Express service: CMC client, TTL cache, allow-listed proxy routes
+src/web/
+  index.html      Marketing landing page (served at /)
+  app.html        The explorer's SPA shell (served at /app)
+  landing.ts/.css Landing page script + styles
+  main.ts         The SPA itself — tables, filters, SVG charts, overlays
+  style.css       App component styles
+  theme.css       Design tokens shared by landing.css and style.css
+scripts/          verify.ts — real API call + evidence capture
+fixtures/         Sample RWA payloads used in mock mode
 ```
 
 ## License

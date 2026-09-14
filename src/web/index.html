@@ -6,11 +6,139 @@
     <title>Bedrock — tokenised real-world assets</title>
     <meta
       name="description"
-      content="Explorer for tokenised real-world assets (stocks, treasuries, commodities) and their issuers, built on the CoinMarketCap RWA API."
+      content="An explorer for the ~7,900 tokenised real-world assets CoinMarketCap tracks — wrapper price spreads, issuer and chain market share, and a research view for every asset. Built on the CoinMarketCap RWA API."
     />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="./main.ts"></script>
+    <header class="lp-wrap lp-nav">
+      <a href="/" class="lp-logo">Bedrock</a>
+      <nav class="lp-nav-links">
+        <a href="#features">Features</a>
+        <a href="#api">API</a>
+        <a href="https://github.com/softalpha0/bedrock" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+      <a href="/app" class="lp-btn lp-btn-primary">Launch app →</a>
+    </header>
+
+    <main>
+      <section class="lp-wrap lp-hero">
+        <span class="lp-kicker">Build with CMC: API Hackathon · Real World Assets track</span>
+        <h1>Tokenised real-world assets, explained — not just listed.</h1>
+        <p>
+          Bedrock screens the ~7,900 tokenised stocks, treasuries and commodities
+          CoinMarketCap tracks, then goes further than a plain table: it ranks
+          live price spreads between an asset's tokenised wrappers, breaks down
+          who issues them and on which chain, and gives every asset a full
+          research view — company facts, SEC filings, and every backing token.
+        </p>
+        <div class="lp-cta">
+          <a href="/app" class="lp-btn lp-btn-primary lp-btn-lg">Launch Bedrock →</a>
+          <a
+            href="https://github.com/softalpha0/bedrock"
+            class="lp-btn lp-btn-ghost lp-btn-lg"
+            target="_blank"
+            rel="noopener noreferrer"
+            >View source</a
+          >
+        </div>
+
+        <div class="lp-stats">
+          <div class="lp-stat"><strong data-stat="assets">7,900+</strong><span>Tokenised assets tracked</span></div>
+          <div class="lp-stat"><strong data-stat="issuers">25+</strong><span>Token issuers</span></div>
+          <div class="lp-stat"><strong>7</strong><span>CoinMarketCap endpoints</span></div>
+          <div class="lp-stat"><strong>Live</strong><span>Real-time via CMC RWA API</span></div>
+        </div>
+      </section>
+
+      <section class="lp-wrap lp-section" id="features">
+        <h2>More than a screener</h2>
+        <p class="lp-lede">
+          Finding a price is the easy part. The interesting questions are what
+          backs it, who controls the supply, and whether the number you're
+          looking at is even real.
+        </p>
+
+        <div class="lp-features">
+          <div class="lp-feature">
+            <div class="lp-icon">⌗</div>
+            <h3>Screener &amp; Compare</h3>
+            <p>Filter, search and sort the top 1,000 assets by market cap; check up to 4 to compare side by side, or star ones to watch.</p>
+          </div>
+          <div class="lp-feature">
+            <div class="lp-icon">↕</div>
+            <h3>Wrapper spread</h3>
+            <p>The same asset often has several tokenised wrappers from different issuers. Bedrock ranks how far the cheapest and priciest diverge, live.</p>
+          </div>
+          <div class="lp-feature">
+            <div class="lp-icon">◔</div>
+            <h3>Issuer &amp; chain share</h3>
+            <p>Who controls tokenised RWA supply, and which blockchain actually hosts it — Ethereum, Solana, Arbitrum and more, chain-neutral by design.</p>
+          </div>
+          <div class="lp-feature">
+            <div class="lp-icon">⌘</div>
+            <h3>Terminal</h3>
+            <p>Type a ticker or name, hit enter, get the full research view — no tab-hopping. A dashboard of movers, spreads and new listings sits underneath.</p>
+          </div>
+          <div class="lp-feature">
+            <div class="lp-icon">◈</div>
+            <h3>Research view</h3>
+            <p>Every asset links out to its SEC EDGAR filings and its backing tokens' CoinMarketCap pages, plus a plain-English Q&amp;A description.</p>
+          </div>
+          <div class="lp-feature">
+            <div class="lp-icon">⇩</div>
+            <h3>CSV export</h3>
+            <p>One click turns any filtered table into a CSV — raw numbers, missing data left blank rather than a misleading zero.</p>
+          </div>
+        </div>
+
+        <div class="lp-callout">
+          <div class="lp-callout-label">What building this surfaced</div>
+          <p>
+            Two "wrappers" of the same gold token came back priced ~30x apart —
+            not a bug. One is denominated per gram, the other per troy ounce,
+            and <code>quotes/latest</code> has no unit field to tell them apart.
+            Bedrock filters spreads over 20% out instead of calling them
+            arbitrage. A handful of assets also carry a real price but a
+            literal <code>$0</code> market cap — shown as missing, not zero.
+          </p>
+        </div>
+      </section>
+
+      <section class="lp-wrap lp-section" id="api">
+        <h2>Built entirely on CoinMarketCap</h2>
+        <p class="lp-lede">
+          No other market-data source. The API key never reaches the browser —
+          a small server holds it and proxies an allow-list of endpoints.
+        </p>
+        <div class="lp-endpoints">
+          <code>assets/list</code>
+          <code>issuers/list</code>
+          <code>issuers</code>
+          <code>quotes/latest</code>
+          <code>info</code>
+          <code>map</code>
+          <code>cryptocurrency/info</code>
+        </div>
+      </section>
+
+      <section class="lp-wrap lp-section lp-final">
+        <h2>See the live data</h2>
+        <p class="lp-lede">No sign-up. It's just the app.</p>
+        <div class="lp-cta">
+          <a href="/app" class="lp-btn lp-btn-primary lp-btn-lg">Launch Bedrock →</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="lp-wrap lp-footer">
+      <span>Built for the Build with CMC: API Hackathon · MIT licensed</span>
+      <span>
+        <a href="https://github.com/softalpha0/bedrock" target="_blank" rel="noopener noreferrer">GitHub</a>
+        &nbsp;·&nbsp;
+        <a href="/app">Launch app</a>
+      </span>
+    </footer>
+
+    <script type="module" src="./landing.ts"></script>
   </body>
 </html>

@@ -15,7 +15,8 @@ CoinMarketCap RWA API.
 **Track:** Real World Assets
 
 **Repo:** https://github.com/softalpha0/bedrock
-**Live demo:** https://bedrock-rygi.onrender.com  (`/api/health` → `{"ok":true,"mode":"live"}`)
+**Live demo:** https://bedrock-rygi.onrender.com  (landing page — click "Launch app," or
+go straight to https://bedrock-rygi.onrender.com/app · health check: `/api/health`)
 
 ---
 
@@ -25,6 +26,8 @@ Bedrock turns the CoinMarketCap RWA API into a browsable view of the whole
 tokenised-real-world-asset market — **7,942** tokenised assets (equities, US
 Treasuries, money-market funds, commodities) and the **25 issuers** behind them.
 
+- A landing page at `/` with a live stat strip (fetched from the API on load,
+  not hardcoded) before sending you into the explorer at `/app`
 - Ranks assets by tokenised market cap, with aggregate market cap / 24h volume
 - Filter by asset type (`stock`, `commodity`, `government-security`, `etf`, …),
   search, and sort; top-12 bar chart

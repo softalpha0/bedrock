@@ -20,9 +20,15 @@ app.use((_req, res, next) => {
 
 registerRoutes(app);
 
-// Serve the built SPA in production. In dev, Vite serves it on :5173 instead.
+// Serve the built site in production. In dev, Vite serves both pages on :5173
+// instead. index.html is the marketing landing page; app.html is the
+// data-explorer SPA, reachable at /app (its own state — tab, search, filters —
+// lives in the query string, so this one route covers every deep link).
 if (existsSync(webDir)) {
   app.use(express.static(webDir));
+  app.get("/app", (_req, res) => {
+    res.sendFile(path.join(webDir, "app.html"));
+  });
   app.use((req, res) => {
     if (req.path.startsWith("/api/")) {
       res.status(404).json({ error: `Unknown endpoint: ${req.path}` });
